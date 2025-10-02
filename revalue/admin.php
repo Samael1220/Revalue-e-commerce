@@ -1,6 +1,41 @@
-<?php 
-include("db.php"); 
-session_start();?>
+<?php
+include("db.php"); // your DB connection
+
+if (isset($_POST['submit'])) {
+    // Collect form data
+    $name     = $_POST['name'];
+    $size     = $_POST['size'];
+    $category = $_POST['category'];
+    $price    = $_POST['price'];
+
+    // Handle file upload
+    $targetDir = "uploads/";
+    if (!is_dir($targetDir)) {
+        mkdir($targetDir, 0777, true); // create folder if it doesn't exist
+    }
+
+    $fileName = time() . "_" . basename($_FILES["image"]["name"]); // unique name
+    $targetFilePath = $targetDir . $fileName;
+
+    if (move_uploaded_file($_FILES["image"]["tmp_name"], $targetFilePath)) {
+        // Insert product into DB
+        $stmt = $conn->prepare("INSERT INTO inventory (name, image, category, size, price) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("ssssi", $name, $targetFilePath, $category, $size, $price);
+
+        if ($stmt->execute()) {
+            echo "✅ Product added successfully!";
+        } else {
+            echo "❌ Database error: " . $stmt->error;
+        }
+
+        $stmt->close();
+    } else {
+        echo "❌ Failed to upload image.";
+    }
+}
+
+$conn->close();
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -335,12 +370,57 @@ session_start();?>
                 </div>
             </div>
 
-            <!-- Products Section (Empty Container) -->
-            <div class="content-section" id="products">
-                <div class="empty-container">
-                    Products Section - Add your content here
-                </div>
-            </div>
+            <!-- Products Section -->
+<!-- Products Section -->
+<div class="content-section" id="products">
+  <h2>Products</h2>
+
+  <?php
+  include("db.php");
+
+  // Fetch products from DB
+  $result = $conn->query("SELECT * FROM inventory ORDER BY id DESC");
+
+  if ($result->num_rows > 0) {
+      echo "<div style='display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;'>";
+
+      while ($row = $result->fetch_assoc()) {
+          echo "<div style='border:1px solid #ccc; padding:10px; text-align:center; border-radius:10px;'>";
+
+          // Image
+          echo "<img src='" . $row['image'] . "' alt='" . htmlspecialchars($row['name']) . "' style='width:150px; height:auto;'><br>";
+
+          // Product Info
+          echo "<strong>" . htmlspecialchars($row['name']) . "</strong><br>";
+          echo "Category: " . htmlspecialchars($row['category']) . "<br>";
+          echo "Size: " . htmlspecialchars($row['size']) . "<br>";
+          echo "Price: ₱" . number_format($row['price']) . "<br><br>";
+
+          // Action Buttons
+          echo "<a href='editProduct.php?id=" . $row['id'] . "'>
+                  <button style='margin:5px; padding:5px 10px;'>✏ Edit</button>
+                </a>";
+          echo "<a href='deleteProduct.php?id=" . $row['id'] . "' onclick=\"return confirm('Are you sure you want to delete this product?');\">
+                  <button style='margin:5px; padding:5px 10px; background:red; color:white;'>🗑 Delete</button>
+                </a>";
+
+          echo "</div>";
+      }
+
+      echo "</div>";
+  } else {
+      echo "<p>No products found.</p>";
+  }
+
+  $conn->close();
+  ?>
+
+  <br>
+  <!-- Add Product Button -->
+  <a href="addProduct.php">
+    <button style="margin-top:20px; padding:10px 20px; font-size:16px;">➕ Add Product</button>
+  </a>
+</div>
 
             <!-- Notifications Section (Empty Container) -->
             <div class="content-section" id="notifications">
