@@ -261,7 +261,7 @@ $result = $conn->query($sql);
         <!-- KEEP ALL ORIGINAL PRODUCT CARDS HERE -->
         <!-- Products Section -->
 <div class="content-section" id="products">
-  <h2>Products</h2>
+  
 
   <div class="products-grid">
     <?php
