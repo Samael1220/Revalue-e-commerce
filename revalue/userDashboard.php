@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['fname'])) {
     $fname      = trim($_POST['fname'] ?? '');
     $lname      = trim($_POST['lname'] ?? '');
     $email      = trim($_POST['email'] ?? '');
-    $number     = !empty($_POST['number']) ? (int)$_POST['number'] : 0;
+    $number = trim($_POST['number'] ?? '');
     $birth_date = !empty($_POST['birth_date']) ? $_POST['birth_date'] : null;
     $address    = trim($_POST['address'] ?? '');
     $country    = trim($_POST['country'] ?? '');
@@ -124,6 +124,44 @@ if (!$user) {
         "country" => ""
     ];
 }
+
+// --- Dashboard Overview Queries ---
+$user_id = $_SESSION['user_id'];
+
+// Total Orders
+$totalOrdersQuery = $conn->prepare("SELECT COUNT(*) AS total_orders FROM orders WHERE user_id=?");
+$totalOrdersQuery->bind_param("i", $user_id);
+$totalOrdersQuery->execute();
+$totalOrders = $totalOrdersQuery->get_result()->fetch_assoc()['total_orders'];
+
+// Total Spent
+$totalSpentQuery = $conn->prepare("SELECT SUM(total_amount) AS total_spent FROM orders WHERE user_id=?");
+$totalSpentQuery->bind_param("i", $user_id);
+$totalSpentQuery->execute();
+$totalSpent = $totalSpentQuery->get_result()->fetch_assoc()['total_spent'] ?? 0;
+
+// Last Order Date
+$lastOrderQuery = $conn->prepare("SELECT order_date FROM orders WHERE user_id=? ORDER BY order_date DESC LIMIT 1");
+$lastOrderQuery->bind_param("i", $user_id);
+$lastOrderQuery->execute();
+$lastOrder = $lastOrderQuery->get_result()->fetch_assoc()['order_date'] ?? "No orders yet";
+
+// Recent 5 Orders
+$recentOrdersQuery = $conn->prepare("SELECT * FROM orders WHERE user_id=? ORDER BY order_date DESC LIMIT 5");
+$recentOrdersQuery->bind_param("i", $user_id);
+$recentOrdersQuery->execute();
+$recentOrders = $recentOrdersQuery->get_result();
+
+// All Orders (for My Orders section)
+$allOrdersQuery = $conn->prepare("SELECT * FROM orders WHERE user_id=? ORDER BY order_date DESC");
+$allOrdersQuery->bind_param("i", $user_id);
+$allOrdersQuery->execute();
+$allOrders = $allOrdersQuery->get_result();
+
+
+
+
+
 ?>
 
 
@@ -235,24 +273,24 @@ if (!$user) {
             <!-- PHP: These values will be populated from database queries -->
             <!-- Example: SELECT COUNT(*) as total_orders FROM orders WHERE user_id = $_SESSION['user_id'] -->
             <div class="stat-card">
-              <div class="stat-icon">📦</div>
-              <div class="stat-value" id="totalOrders">24</div>
-              <div class="stat-label">Total Orders</div>
-            </div>
+  <div class="stat-icon">📦</div>
+  <div class="stat-value"><?= $totalOrders ?></div>
+  <div class="stat-label">Total Orders</div>
+</div>
 
-            <!-- PHP: SELECT SUM(total_amount) as total_spent FROM orders WHERE user_id = $_SESSION['user_id'] -->
-            <div class="stat-card">
-              <div class="stat-icon">💵</div>
-              <div class="stat-value" id="totalSpentOverview">$3,247.50</div>
-              <div class="stat-label">Total Spent</div>
-            </div>
+<div class="stat-card">
+  <div class="stat-icon">💵</div>
+  <div class="stat-value">₱<?= number_format($totalSpent, 2) ?></div>
+  <div class="stat-label">Total Spent</div>
+</div>
 
-            <!-- PHP: SELECT created_at FROM orders WHERE user_id = $_SESSION['user_id'] ORDER BY created_at DESC LIMIT 1 -->
-            <div class="stat-card">
-              <div class="stat-icon">📅</div>
-              <div class="stat-value" id="lastOrderDate">Dec 15, 2024</div>
-              <div class="stat-label">Last Order</div>
-            </div>
+<div class="stat-card">
+  <div class="stat-icon">📅</div>
+  <div class="stat-value">
+    <?= ($lastOrder !== "No orders yet") ? date("M d, Y", strtotime($lastOrder)) : $lastOrder ?>
+  </div>
+  <div class="stat-label">Last Order</div>
+</div>
           </div>
 
           <div class="section-header">
@@ -270,9 +308,19 @@ if (!$user) {
                 </tr>
               </thead>
               <tbody id="recentOrdersTable">
-                <!-- PHP: This will be populated with recent orders -->
-                <!-- Query: SELECT * FROM orders WHERE user_id = $_SESSION['user_id'] ORDER BY created_at DESC LIMIT 5 -->
-              </tbody>
+  <?php if ($recentOrders->num_rows > 0): ?>
+    <?php while ($order = $recentOrders->fetch_assoc()): ?>
+      <tr>
+        <td>#<?= $order['id'] ?></td>
+        <td><?= date("M d, Y", strtotime($order['order_date'])) ?></td>
+        <td><?= htmlspecialchars($order['status']) ?></td>
+        <td>₱<?= number_format($order['total_amount'], 2) ?></td>
+      </tr>
+    <?php endwhile; ?>
+  <?php else: ?>
+    <tr><td colspan="4">No recent orders.</td></tr>
+  <?php endif; ?>
+</tbody>
             </table>
           </div>
         </section>
@@ -298,52 +346,114 @@ if (!$user) {
                 </tr>
               </thead>
               <tbody id="ordersTable">
-                <!-- PHP: Replace with database query -->
-                <!-- SELECT * FROM orders WHERE user_id = $_SESSION['user_id'] ORDER BY created_at DESC -->
-              </tbody>
+  <?php if ($allOrders->num_rows > 0): ?>
+    <?php while ($order = $allOrders->fetch_assoc()): ?>
+      <tr>
+        <td>#<?= $order['id'] ?></td>
+        <td><?= date("M d, Y", strtotime($order['order_date'])) ?></td>
+        <td>
+          <?php
+          $itemsQuery = $conn->prepare("SELECT i.name, oi.quantity 
+                                        FROM order_items oi 
+                                        JOIN inventory i ON oi.product_id = i.id 
+                                        WHERE oi.order_id=?");
+          $itemsQuery->bind_param("i", $order['id']);
+          $itemsQuery->execute();
+          $items = $itemsQuery->get_result();
+          $itemList = [];
+          while ($item = $items->fetch_assoc()) {
+              $itemList[] = $item['name'] . " (x" . $item['quantity'] . ")";
+          }
+          echo implode(", ", $itemList);
+          ?>
+        </td>
+        <td><?= htmlspecialchars($order['status']) ?></td>
+        <td>₱<?= number_format($order['total_amount'], 2) ?></td>
+      </tr>
+    <?php endwhile; ?>
+  <?php else: ?>
+    <tr><td colspan="5">No orders found.</td></tr>
+  <?php endif; ?>
+</tbody>
+
             </table>
           </div>
         </section>
 
-        <!-- Total Spent Section -->
-        <section id="spent" class="content-section">
-          <div class="section-header">
-            <h1 class="section-title">Total Spent</h1>
-            <p class="section-subtitle">
-              Track your spending and set budgets for future purchases.
-            </p>
-          </div>
+        <!-- Cart Section -->
+<section id="spent" class="content-section">
+  <div class="section-header">
+    <h1 class="section-title">My Cart</h1>
+    <p class="section-subtitle">Review your selected items before checkout.</p>
+  </div>
 
-          <div class="stats-grid">
-            <div class="spent-card">
-              <div class="spent-amount" id="totalSpent">
-                <!-- PHP: Replace with SUM(total_amount) from orders WHERE user_id = $_SESSION['user_id'] -->
-                $3,247.50
-              </div>
-              <div class="spent-label">Lifetime Spending</div>
-            </div>
-          </div>
+  <form method="POST" action="checkout_review.php">
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Select</th>
+            <th>Product</th>
+            <th>Size</th>
+            <th>Price</th>
+            <th>Qty</th>
+            <th>Total</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php
+          $user_id = $_SESSION['user_id'];
+          $cartQuery = $conn->prepare("
+            SELECT c.id AS cart_id, i.name, i.size, i.price, i.image, c.quantity
+            FROM cart c
+            JOIN inventory i ON c.product_id = i.id
+            WHERE c.user_id=?
+          ");
+          $cartQuery->bind_param("i", $user_id);
+          $cartQuery->execute();
+          $cartResult = $cartQuery->get_result();
 
-          <div class="section-header">
-            <h2 class="section-title">Spending Breakdown</h2>
-          </div>
+          $grandTotal = 0;
+          if ($cartResult->num_rows > 0) {
+              while ($item = $cartResult->fetch_assoc()) {
+                  $total = $item['price'] * $item['quantity'];
+                  $grandTotal += $total;
+                  echo "<tr>
+                          <td><input type='checkbox' name='cart_ids[]' value='{$item['cart_id']}'></td>
+                          <td>
+                            <img src='".htmlspecialchars($item['image'])."' alt='".htmlspecialchars($item['name'])."' style='width:60px; height:60px; object-fit:cover; border-radius:5px;'><br>"
+                            .htmlspecialchars($item['name'])."
+                          </td>
+                          <td>".htmlspecialchars($item['size'])."</td>
+                          <td>₱".number_format($item['price'],2)."</td>
+                          <td>{$item['quantity']}</td>
+                          <td>₱".number_format($total,2)."</td>
+                          <td>
+                            <a href='remove_cart.php?id={$item['cart_id']}' class='btn-delete'>Delete</a>
+                          </td>
+                        </tr>";
+              }
+              echo "<tr>
+                      <td colspan='5' style='text-align:right;'><strong>Grand Total:</strong></td>
+                      <td colspan='2'><strong>₱".number_format($grandTotal,2)."</strong></td>
+                    </tr>";
+          } else {
+              echo "<tr><td colspan='7'>Your cart is empty.</td></tr>";
+          }
+          ?>
+        </tbody>
+      </table>
+    </div>
 
-          <div class="table-container">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Month</th>
-                  <th>Amount</th>
-                  <th>Orders</th>
-                  <th>Average Order Value</th>
-                </tr>
-              </thead>
-              <tbody id="spendingBreakdownTable">
-                <!-- PHP: Replace with SELECT MONTH(created_at), SUM(total_amount), COUNT(*), AVG(total_amount) FROM orders GROUP BY MONTH(created_at) -->
-              </tbody>
-            </table>
-          </div>
-        </section>
+    <?php if ($cartResult->num_rows > 0): ?>
+      <div style="margin-top:20px; text-align:right;">
+        <button type="submit" name="review_checkout" class="btn">Proceed to Payment</button>
+      </div>
+    <?php endif; ?>
+</form>
+</section>
+
 
         <!-- Address Book Section -->
         <section id="addresses" class="content-section">
