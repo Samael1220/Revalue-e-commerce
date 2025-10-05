@@ -16,7 +16,6 @@ h6 {
     padding-top: 3.5rem;
     margin-right: 10%;
     margin-left: 10%;
-    border: 1px solid black;
 }
 
 .sec-intro {
@@ -63,12 +62,11 @@ main {
     background-color: hsl(35, 25%, 97%);
     height: 100%;
     padding-top: 2rem;
-    border: 1px solid green;
 }
 
 .bd-child-container {
     margin-top: 7px;
-    border: 1px solid green;
+
     border-top: none;
     height: 100%;
     display: flex;
