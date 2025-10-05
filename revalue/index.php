@@ -23,8 +23,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
         } else {
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-            $stmt = $conn->prepare("INSERT INTO users (Full_name, E_mail, Pass) VALUES (?, ?, ?)");
-            $stmt->bind_param("sss", $fullname, $email, $hashedPassword);
+            // Provide default values for required fields
+            $fname = explode(' ', $fullname)[0]; // First name
+            $lname = count(explode(' ', $fullname)) > 1 ? implode(' ', array_slice(explode(' ', $fullname), 1)) : ''; // Last name
+            $number = '0'; // Default phone number
+            $address = 'Not provided'; // Default address
+            $country = 'Philippines'; // Default country
+            
+            $stmt = $conn->prepare("INSERT INTO users (Full_name, E_mail, Pass, F_name, L_name, number, address, country) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("ssssssss", $fullname, $email, $hashedPassword, $fname, $lname, $number, $address, $country);
 
             if ($stmt->execute()) {
                 $_SESSION['registerSuccess'] = "✅ Registered successfully! You can now log in.";
@@ -142,6 +149,16 @@ $result = $conn->query($sql);
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Re-Value.PH</title>
+ <script src="https://unpkg.com/lucide@latest" defer></script>
+    <script defer>
+    document.addEventListener('DOMContentLoaded', () => {
+      
+      lucide.createIcons();
+    });
+  </script>
+ <link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <link rel="stylesheet" href="app.css" />
 <link rel="stylesheet" href="specificity.css" />
 <script defer src="script.js"></script>
@@ -151,7 +168,7 @@ $result = $conn->query($sql);
 <div class="cont-head">
   <header class="header ps-mg">
     <div class="left">
-      <h6>Logo</h6>
+<h2 style="margin-bottom: 0;"><i class="fa-solid fa-leaf" style="color:darkgreen"></i></h2>
       <h3>Re-Value.PH</h3>
     </div>
 
@@ -163,7 +180,7 @@ $result = $conn->query($sql);
       <button class="btn btn-outline">Categories</button>
       <button class="btn btn-outline">Add to Cart</button>
       <?php if(isset($_SESSION['user_id'])): ?>
-      <button class="btn btn-outline"><a href="userDashboard.php">My Account</a></button>
+     <button class="btn btn-outline lcd" ><a href="userDashboard.php"><i data-lucide="user"></i> </a></button>
       <form method="POST" style="display:inline;">
         <button class="btn btn-outline" type="submit" name="logout">Log out</button>
       </form>
@@ -195,7 +212,8 @@ $result = $conn->query($sql);
 <div class="bd-container">
   <div class="bd-child-container ps-mg">
     <aside>
-  <form method="GET" action="">
+  <form method="GET"  onsubmit="return submitFilterForm()">   
+    <!-- filter -->
     <div class="flt"><h2>Filters</h2></div>
 
     <!-- Categories -->
@@ -258,12 +276,10 @@ $result = $conn->query($sql);
       <h3 class="cl">Our Collection</h3>
       <h6 class="cl-des">Handpicked and made special for you</h6>
       <div class="cl-pos">
-        <!-- KEEP ALL ORIGINAL PRODUCT CARDS HERE -->
         <!-- Products Section -->
+<a id="products"></a>
 <div class="content-section" id="products">
-  
-
-  <div class="products-grid">
+  <div class="products-grid" id="products-grid">
     <?php
     include("db.php");
 
@@ -325,19 +341,10 @@ $result = $conn->query($sql);
           <button class="btn-cart" style="background:#ccc; cursor:not-allowed;" disabled>
               Already in Cart
           </button>
-          <script>
-            document.addEventListener("DOMContentLoaded", function(){
-              let toast = document.getElementById("toast");
-              toast.innerText = "<?= htmlspecialchars($row['name']) ?> is already in your cart!";
-              toast.style.display = "block";
-              setTimeout(()=> toast.style.display="none", 3000);
-            });
-          </script>
       <?php else: ?>
-          <form action="cart.php" method="POST">
-            <input type="hidden" name="product_id" value="<?= $row['id'] ?>">
-            <button type="submit" class="btn-cart">Add to Cart</button>
-          </form>
+          <button type="button" class="btn-cart" onclick="addToCart(<?= $row['id'] ?>, '<?= htmlspecialchars($row['name']) ?>', this)">
+              Add to Cart
+          </button>
       <?php endif; ?>
   <?php else: ?>
       <!-- if not logged in -->
@@ -397,85 +404,35 @@ $result = $conn->query($sql);
           <a href="#" onclick="alert('Forgot password clicked!')">Forgot your password?</a>
           <div class="register-link">
             <span>New here? </span>
-            <a href="#" onclick="event.preventDefault(); openRegisterModal()">Create an account</a>
+            <a href="register.php">Create an account</a>
           </div>
         </div>
 
-        <!-- Register container -->
-        <div class="register-container" style="display: none;">
-          <h1 class="h1-modal">Re-Value.PH</h1>
-          <h2 class="h2-modal">Create Account</h2>
-          <p class="p-modal">Join our community of sustainable fashion lovers</p>
-
-          <?php if (!empty($registerError)): ?>
-            <div class="alert-error"><?php echo htmlspecialchars($registerError); ?></div>
-          <?php endif; ?>
-
-          <form class="auth-form" method="post" action="">
-            <div class="input-group">
-              <label class="input-label" for="full-name">Full name</label>
-              <input type="text" id="full-name" name="full-name" placeholder="Enter your full name" required />
-            </div>
-            <div class="input-group">
-              <label class="input-label" for="email">Email</label>
-              <input type="email" id="email" name="email" placeholder="Enter your email" required />
-            </div>
-            <div class="input-group">
-              <label class="input-label" for="reg-password">Password</label>
-              <input type="password" id="reg-password" name="password" placeholder="Create a password" required />
-            </div>
-            <div class="input-group">
-              <label class="input-label" for="reg-confirm">Confirm password</label>
-              <input type="password" id="reg-confirm" name="confirm-pass" placeholder="Confirm your password" required />
-            </div>
-            <button class="btn-form" type="submit" name="register">Create account</button>
-          </form>
-
-          <div class="forgot-password">
-            <div class="register-link">
-              <span>Already have an account? </span>
-              <a href="#" onclick="closeRegisterModal(); openModal();">Sign in</a>
-            </div>
-          </div>
-        </div>
  </div>
     </div>
 
     <div class="sec-container">
       <div class="decorative-circle"></div>
       <div class="decorative-circle-2"></div>
-      <div class="image-placeholder">Your Image Goes Here</div>
+      <div class="image-placeholder">
+        <img src="uploads/anthony-sebbo-Qn8VH9dE7-U-unsplash.jpg" alt="Fashion Image">
+      </div>
     </div>
   </div>
 </div>
 <?php endif; ?>
 </main>
 
-<script>
-function openModal() {
-  document.getElementById('auth-overlay').style.display = 'block';
-}
-
-function closeModal() {
-  document.getElementById('auth-overlay').style.display = 'none';
-}
-
-function openRegisterModal() {
-  const register = document.querySelector('.register-container');
-  const login = document.querySelector('#auth-overlay > .modal .form-content > form.auth-form'); // only the login form
-
-  if (register) register.style.display = 'block';
-  if (login) login.style.display = 'none';
-}
-
-function closeRegisterModal() {
-  const register = document.querySelector('.register-container');
-  const login = document.querySelector('#auth-overlay > .modal .form-content > form.auth-form'); // only the login form
-
-  if (register) register.style.display = 'none';
-  if (login) login.style.display = 'block';
-}
-</script>
-<div id="toast" class="toast"></div>
+<div id="toast" class="toast">
+    <div class="toast-content">
+        <div class="toast-icon"></div>
+        <div class="toast-body">
+            <div class="toast-title"></div>
+            <div class="toast-message"></div>
+        </div>
+        <button class="toast-close" onclick="hideToast()">&times;</button>
+    </div>
+    <div class="toast-progress"></div>
+</div>
 </body>
 </html>
