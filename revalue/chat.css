@@ -1,0 +1,148 @@
+.chat-container {
+    width: 400px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.chat-box {
+    height: 350px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 10px;
+    overflow-y: auto;
+    background: #fafafa;
+}
+
+.message {
+    margin: 5px 0;
+    padding: 8px 12px;
+    border-radius: 15px;
+    max-width: 70%;
+    word-wrap: break-word;
+}
+
+.sent {
+    background: #007bff;
+    color: #fff;
+    margin-left: auto;
+}
+
+.received {
+    background: #e0e0e0;
+    color: #000;
+    margin-right: auto;
+}
+
+.chat-form {
+    display: flex;
+    margin-top: 10px;
+    gap: 5px;
+}
+
+.chat-form input {
+    flex: 1;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.chat-form button {
+    background: #007bff;
+    color: #fff;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.chat-form button:hover {
+    background: #0056b3;
+}
+
+/* Floating button adjustments can rely on existing btn classes */
+
+/* Admin messaging layout */
+.admin-messaging {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    height: 600px;
+    gap: 16px;
+}
+
+.admin-user-list {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-user-list-header {
+    padding: 10px 12px;
+    font-weight: 600;
+    border-bottom: 1px solid #eee;
+}
+
+.admin-user-items {
+    overflow-y: auto;
+}
+
+.admin-user-item {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f2f2f2;
+    cursor: pointer;
+}
+
+.admin-user-item:hover {
+    background: #fafafa;
+}
+
+.admin-chat {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-chat-header {
+    padding: 10px 12px;
+    border-bottom: 1px solid #eee;
+    font-weight: 600;
+}
+
+.admin-chat-box {
+    padding: 10px;
+    flex: 1;
+    overflow-y: auto;
+    background: #fafafa;
+}
+
+.admin-chat-form {
+    display: flex;
+    gap: 8px;
+    padding: 10px;
+    border-top: 1px solid #eee;
+}
+
+.admin-chat-form input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.admin-chat-form button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+}

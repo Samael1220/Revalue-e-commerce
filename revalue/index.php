@@ -160,6 +160,7 @@ $result = $conn->query($sql);
   rel="stylesheet"
   href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <link rel="stylesheet" href="app.css" />
+<link rel="stylesheet" href="chat.css">
 <link rel="stylesheet" href="specificity.css" />
 <script defer src="script.js"></script>
 </head>
@@ -168,7 +169,7 @@ $result = $conn->query($sql);
 <div class="cont-head">
   <header class="header ps-mg">
     <div class="left">
-<h2 style="margin-bottom: 0;"><i class="fa-solid fa-leaf" style="color:darkgreen"></i></h2>
+    <h2 style="margin-bottom: 0;"><i class="fa-solid fa-leaf" style="color:darkgreen"></i></h2>
       <h3>Re-Value.PH</h3>
     </div>
 
@@ -177,8 +178,8 @@ $result = $conn->query($sql);
     </div>
 
     <div class="right">
-      <button class="btn btn-outline">Categories</button>
-      <button class="btn btn-outline">Add to Cart</button>
+     
+      <button class="btn btn-outline"><i data-lucide="shopping-cart"></i></button>
       <?php if(isset($_SESSION['user_id'])): ?>
      <button class="btn btn-outline lcd" ><a href="userDashboard.php"><i data-lucide="user"></i> </a></button>
       <form method="POST" style="display:inline;">
@@ -367,7 +368,8 @@ $result = $conn->query($sql);
 
     $conn->close();
     ?>
-  </div>
+
+    
 </div>
 
 
@@ -426,6 +428,7 @@ $result = $conn->query($sql);
     </div>
   </div>
 </div>
+
 <?php endif; ?>
 </main>
 
@@ -471,6 +474,11 @@ $result = $conn->query($sql);
   });
 
 </script>
+
+<?php if(isset($_SESSION['user_id'])): ?>
+
+
+<?php endif; ?>
 
 </body>
 </html>
