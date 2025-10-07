@@ -2,6 +2,26 @@
 include("db.php"); 
 session_start();
 
+//address book
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $user_id = $_SESSION['user_id'];
+
+    if (isset($_POST['clear_main'])) {
+        $conn->query("UPDATE users SET address='' WHERE id=$user_id");
+    }
+    if (isset($_POST['clear_home'])) {
+        $conn->query("UPDATE users SET address2='' WHERE id=$user_id");
+    }
+    if (isset($_POST['clear_work'])) {
+        $conn->query("UPDATE users SET address3='' WHERE id=$user_id");
+    }
+
+    // Reload data after update
+    $result = mysqli_query($conn, "SELECT * FROM users WHERE id='$user_id'");
+    $user = mysqli_fetch_assoc($result);
+}
+
+
 // Debug: Check database connection
 if (!$conn) {
     die("Database connection failed: " . mysqli_connect_error());
@@ -30,6 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['fname'])) {
     $address    = trim($_POST['address'] ?? '');
     $country    = trim($_POST['country'] ?? '');
     $full_name  = trim($fname . " " . $lname);
+    $address2   = trim($_POST['address2'] ?? '');
+    $address3   = trim($_POST['address3'] ?? '');
 
 
     // Validate required fields
@@ -49,33 +71,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['fname'])) {
                 $updateMsg = "⚠ This email is already taken by another user.";
             } else {
                 $stmt = $conn->prepare("
-                    UPDATE users SET
-                        F_name=?, 
-                        L_name=?, 
-                        Full_name=?, 
-                        E_mail=?, 
-                        number=?, 
-                        birth_date=?, 
-                        address=?, 
-                        country=?
-                    WHERE id=?
-                ");
+                  UPDATE users SET
+                      F_name=?, 
+                      L_name=?, 
+                      Full_name=?, 
+                      E_mail=?, 
+                      number=?, 
+                      birth_date=?, 
+                      address=?, 
+                      address2=?, 
+                      address3=?, 
+                      country=?
+                  WHERE id=?
+              ");
 
                 if ($stmt === false) {
                     $updateMsg = "⚠ Database error: " . $conn->error;
                 } else {
                     $stmt->bind_param(
-                        "ssssssssi",
-                        $fname,
-                        $lname,
-                        $full_name,
-                        $email,
-                        $number,
-                        $birth_date,
-                        $address,
-                        $country,
-                        $_SESSION['user_id']
-                    );
+                    "ssssssssssi",
+                    $fname,
+                    $lname,
+                    $full_name,
+                    $email,
+                    $number,
+                    $birth_date,
+                    $address,
+                    $address2,
+                    $address3,
+                    $country,
+                    $_SESSION['user_id']
+);
 
                     if ($stmt->execute()) {
                         if ($stmt->affected_rows > 0) {
@@ -114,15 +140,17 @@ $stmt->close();
 // Ensure $user is always an array
 if (!$user) {
     $user = [
-        "F_name" => "",
-        "L_name" => "",
-        "Full_name" => "",
-        "E_mail" => "",
-        "number" => "",
-        "birth_date" => "",
-        "address" => "",
-        "country" => ""
-    ];
+    "F_name" => "",
+    "L_name" => "",
+    "Full_name" => "",
+    "E_mail" => "",
+    "number" => "",
+    "birth_date" => "",
+    "address" => "",
+    "address2" => "",
+    "address3" => "",
+    "country" => ""
+];
 }
 
 // --- Dashboard Overview Queries ---
@@ -454,28 +482,53 @@ $allOrders = $allOrdersQuery->get_result();
 </form>
 </section>
 
+<!--ADDRESS BOOK Section -->
+        <section class="address-book">
+  <h2>Address Book</h2>
 
-        <!-- Address Book Section -->
-        <section id="addresses" class="content-section">
-          <div class="section-header">
-            <h1 class="section-title">Address Book</h1>
-            <p class="section-subtitle">
-              Manage your saved shipping and billing addresses.
-            </p>
-          </div>
+  <div class="address-section">
+    <label>Main Address:</label>
+    <span><?php echo !empty($user['address']) ? htmlspecialchars($user['address']) : '<i>No address set</i>'; ?></span>
+    <div class="address-actions">
+      <form method="POST" action="" style="display:inline;">
+        <button type="submit" name="clear_main" class="remove-btn">Remove</button>
+      </form>
+      <form method="GET" action="editAddress.php" style="display:inline;">
+        <input type="hidden" name="type" value="main">
+        <button type="submit" class="edit-btn">Edit</button>
+      </form>
+    </div>
+  </div>
 
-          <div style="text-align: right; margin-bottom: var(--spacing-lg)">
-            <!-- PHP: This button will trigger modal or redirect to add_address.php -->
-            <button class="btn btn-primary" onclick="showAddAddressModal()">
-              + Add Address
-            </button>
-          </div>
+  <div class="address-section">
+    <label>Home Address:</label>
+    <span><?php echo !empty($user['address2']) ? htmlspecialchars($user['address2']) : '<i>No address set</i>'; ?></span>
+    <div class="address-actions">
+      <form method="POST" action="" style="display:inline;">
+        <button type="submit" name="clear_home" class="remove-btn">Remove</button>
+      </form>
+      <form method="GET" action="editAddress.php" style="display:inline;">
+        <input type="hidden" name="type" value="home">
+        <button type="submit" class="edit-btn">Edit</button>
+      </form>
+    </div>
+  </div>
 
-          <div class="address-grid" id="addressGrid">
-            <!-- PHP: Replace with database query -->
-            <!-- SELECT * FROM addresses WHERE user_id = $_SESSION['user_id'] -->
-          </div>
-        </section>
+  <div class="address-section">
+    <label>Work Address:</label>
+    <span><?php echo !empty($user['address3']) ? htmlspecialchars($user['address3']) : '<i>No address set</i>'; ?></span>
+    <div class="address-actions">
+      <form method="POST" action="" style="display:inline;">
+        <button type="submit" name="clear_work" class="remove-btn">Remove</button>
+      </form>
+      <form method="GET" action="editAddress.php" style="display:inline;">
+        <input type="hidden" name="type" value="work">
+        <button type="submit" class="edit-btn">Edit</button>
+      </form>
+    </div>
+  </div>
+</section>
+
 
         <!-- Personal Details Section -->
 <section id="personal" class="content-section">

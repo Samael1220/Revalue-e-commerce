@@ -212,65 +212,71 @@ $result = $conn->query($sql);
 <div class="bd-container">
   <div class="bd-child-container ps-mg">
     <aside>
-  <form method="GET"  onsubmit="return submitFilterForm()">   
-    <!-- filter -->
-    <div class="flt"><h2>Filters</h2></div>
+  <!-- CATEGORY FILTER -->
+  <form method="GET">
+    <h6>CATEGORIES</h6>
+    <input type="hidden" name="size" value="<?= isset($_GET['size']) ? htmlspecialchars($_GET['size']) : '' ?>">
+    <input type="hidden" name="price" value="<?= isset($_GET['price']) ? htmlspecialchars($_GET['price']) : '' ?>">
 
-    <!-- Categories -->
-<div class="categories">
-  <span><h6>CATEGORIES</h6></span>
-  
-  <!-- All Option -->
-  <label class="radio-box">
-    <input type="radio" name="category" value="" <?= (!isset($_GET['category']) || $_GET['category']=="") ? "checked" : "" ?> onchange="this.form.submit()">
-    <span>All</span>
-  </label>
+    <label class="radio-box">
+      <input type="radio" name="category" value="" <?= (!isset($_GET['category']) || $_GET['category']=="") ? "checked" : "" ?> onchange="this.form.submit()">
+      <span>All</span>
+    </label>
 
-  <label class="radio-box">
-    <input type="radio" name="category" value="vintage" <?= (isset($_GET['category']) && $_GET['category']=="vintage") ? "checked" : "" ?> onchange="this.form.submit()">
-    <span>Vintage</span>
-  </label>
-  <label class="radio-box">
-    <input type="radio" name="category" value="modern" <?= (isset($_GET['category']) && $_GET['category']=="modern") ? "checked" : "" ?> onchange="this.form.submit()">
-    <span>Modern</span>
-  </label>
-  <label class="radio-box">
-    <input type="radio" name="category" value="jackets" <?= (isset($_GET['category']) && $_GET['category']=="jackets") ? "checked" : "" ?> onchange="this.form.submit()">
-    <span>Jackets</span>
-  </label>
-  <label class="radio-box">
-    <input type="radio" name="category" value="coats" <?= (isset($_GET['category']) && $_GET['category']=="coats") ? "checked" : "" ?> onchange="this.form.submit()">
-    <span>Coats</span>
-  </label>
-  <label class="radio-box">
-    <input type="radio" name="category" value="pants" <?= (isset($_GET['category']) && $_GET['category']=="pants") ? "checked" : "" ?> onchange="this.form.submit()">
-    <span>Pants</span>
-  </label>
-</div>
+    <label class="radio-box">
+      <input type="radio" name="category" value="vintage" <?= (isset($_GET['category']) && $_GET['category']=="vintage") ? "checked" : "" ?> onchange="this.form.submit()">
+      <span>Vintage</span>
+    </label>
 
-    <!-- Sizes -->
-    <div class="sizes">
-      <span><h6>SIZES</h6></span>
-      <?php 
-        $sizes = ["XS","S","M","L","XL","XXL"];
-        foreach($sizes as $s){
-          $active = (isset($_GET['size']) && $_GET['size']==$s) ? "active" : "";
-          echo "<button type='submit' name='size' value='$s' class='size-btn $active' 
-                  style='cursor:pointer;'>$s</button>";
-        }
-      ?>
-    </div>
+    <label class="radio-box">
+      <input type="radio" name="category" value="modern" <?= (isset($_GET['category']) && $_GET['category']=="modern") ? "checked" : "" ?> onchange="this.form.submit()">
+      <span>Modern</span>
+    </label>
 
-    <!-- Prices -->
-    <span><h6 class="prc">PRICES</h6></span>
-    <div class="prices">
-      <button type="submit" name="price" value="0-500" class="size-btn">Under ₱500</button>
-      <button type="submit" name="price" value="500-1000" class="size-btn">₱500-₱1000</button>
-      <button type="submit" name="price" value="1000-2000" class="size-btn">₱1000-₱2000</button>
-      <button type="submit" name="price" value="2000+" class="size-btn">Above ₱2000</button>
-    </div>
+    <label class="radio-box">
+      <input type="radio" name="category" value="jackets" <?= (isset($_GET['category']) && $_GET['category']=="jackets") ? "checked" : "" ?> onchange="this.form.submit()">
+      <span>Jackets</span>
+    </label>
+
+    <label class="radio-box">
+      <input type="radio" name="category" value="coats" <?= (isset($_GET['category']) && $_GET['category']=="coats") ? "checked" : "" ?> onchange="this.form.submit()">
+      <span>Coats</span>
+    </label>
+
+    <label class="radio-box">
+      <input type="radio" name="category" value="pants" <?= (isset($_GET['category']) && $_GET['category']=="pants") ? "checked" : "" ?> onchange="this.form.submit()">
+      <span>Pants</span>
+    </label>
+  </form>
+
+  <!-- SIZE FILTER -->
+  <form method="GET">
+    <h6>SIZES</h6>
+    <input type="hidden" name="category" value="<?= isset($_GET['category']) ? htmlspecialchars($_GET['category']) : '' ?>">
+    <input type="hidden" name="price" value="<?= isset($_GET['price']) ? htmlspecialchars($_GET['price']) : '' ?>">
+
+    <?php 
+      $sizes = ["XS","S","M","L","XL","XXL"];
+      foreach($sizes as $s){
+        $active = (isset($_GET['size']) && $_GET['size']==$s) ? "active" : "";
+        echo "<button type='submit' name='size' value='$s' class='size-btn $active'>$s</button>";
+      }
+    ?>
+  </form>
+
+  <!-- PRICE FILTER -->
+  <form method="GET">
+    <h6>PRICES</h6>
+    <input type="hidden" name="category" value="<?= isset($_GET['category']) ? htmlspecialchars($_GET['category']) : '' ?>">
+    <input type="hidden" name="size" value="<?= isset($_GET['size']) ? htmlspecialchars($_GET['size']) : '' ?>">
+
+    <button type="submit" name="price" value="0-500" class="size-btn <?= (isset($_GET['price']) && $_GET['price']=="0-500") ? "active" : "" ?>">Under ₱500</button>
+    <button type="submit" name="price" value="500-1000" class="size-btn <?= (isset($_GET['price']) && $_GET['price']=="500-1000") ? "active" : "" ?>">₱500-₱1000</button>
+    <button type="submit" name="price" value="1000-2000" class="size-btn <?= (isset($_GET['price']) && $_GET['price']=="1000-2000") ? "active" : "" ?>">₱1000-₱2000</button>
+    <button type="submit" name="price" value="2000+" class="size-btn <?= (isset($_GET['price']) && $_GET['price']=="2000+") ? "active" : "" ?>">Above ₱2000</button>
   </form>
 </aside>
+
 
     <div class="cl-cnt">
       <h3 class="cl">Our Collection</h3>
@@ -434,5 +440,37 @@ $result = $conn->query($sql);
     </div>
     <div class="toast-progress"></div>
 </div>
+
+<script>
+  // Save scroll position before reload
+  window.addEventListener("beforeunload", () => {
+    localStorage.setItem("scrollPosition", window.scrollY);
+  });
+
+  // Restore scroll position after reload
+  window.addEventListener("load", () => {
+    const scrollPosition = localStorage.getItem("scrollPosition");
+    if (scrollPosition) {
+      window.scrollTo(0, parseInt(scrollPosition));
+      localStorage.removeItem("scrollPosition");
+    }
+  });
+
+   // ✅ Handle "All" category click properly
+  document.querySelectorAll('input[name="category"]').forEach(radio => {
+    radio.addEventListener("change", function() {
+      if (this.value === "") {
+        // Clear size + price filters from URL
+        const url = new URL(window.location.href);
+        url.searchParams.delete("size");
+        url.searchParams.delete("price");
+        url.searchParams.delete("category");
+        window.location.href = url.pathname; // reload page with no filters
+      }
+    });
+  });
+
+</script>
+
 </body>
 </html>
