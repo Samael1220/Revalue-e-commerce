@@ -12,7 +12,10 @@ function closeModal() {
 
 // Open modal on page load
 document.addEventListener("DOMContentLoaded", function () {
-    openModal();
+    const authOverlayInit = document.getElementById("auth-overlay");
+    if (authOverlayInit) {
+        openModal();
+    }
 
     // Prevent default jumps for '#' links to avoid layout shifts
     document.querySelectorAll('a[href="#"]').forEach(function (a) {
@@ -93,11 +96,16 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // Close modal when clicking outside
-document.getElementById("auth-overlay").addEventListener("click", function (e) {
-    if (e.target === this) {
-        closeModal();
+(function () {
+    const overlay = document.getElementById("auth-overlay");
+    if (overlay) {
+        overlay.addEventListener("click", function (e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
     }
-});
+})();
 
 // Close modal with Escape key
 document.addEventListener("keydown", function (e) {

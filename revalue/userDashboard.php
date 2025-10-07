@@ -483,7 +483,7 @@ $allOrders = $allOrdersQuery->get_result();
 </section>
 
 <!--ADDRESS BOOK Section -->
-        <section class="address-book">
+        <section class="address-book content-section" id="addresses">
   <h2>Address Book</h2>
 
   <div class="address-section">

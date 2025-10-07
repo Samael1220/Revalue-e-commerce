@@ -363,11 +363,91 @@ $conn->close();
                 </div>
             </div>
 
-            <!-- Analytics Section (Empty Container) -->
+            <!-- Messaging Section (replaces Analytics) -->
             <div class="content-section" id="analytics">
-                <div class="empty-container">
-                    Analytics Section - Add your content here
+                <link rel="stylesheet" href="chat.css" />
+                <div class="admin-messaging">
+                    <div class="admin-user-list">
+                        <div class="admin-user-list-header">Users</div>
+                        <div class="admin-user-items" id="admin-user-items"></div>
+                    </div>
+                    <div class="admin-chat">
+                        <div class="admin-chat-header" id="admin-chat-header">Select a user</div>
+                        <div class="admin-chat-box" id="admin-chat-box"></div>
+                        <form class="admin-chat-form" id="admin-chat-form">
+                            <input type="text" id="admin-chat-input" placeholder="Type a message..." autocomplete="off" />
+                            <button type="submit">Send</button>
+                        </form>
+                    </div>
                 </div>
+                <script>
+                (function(){
+                  const userList = document.getElementById('admin-user-items');
+                  const chatBox = document.getElementById('admin-chat-box');
+                  const chatHeader = document.getElementById('admin-chat-header');
+                  const form = document.getElementById('admin-chat-form');
+                  const input = document.getElementById('admin-chat-input');
+                  let activeUserId = 0;
+                  let lastId = 0;
+
+                  function appendMessage(msg){
+                    const div = document.createElement('div');
+                    // sender comparison will be done server-side by ids
+                    div.className = 'message ' + (msg.sender_id == activeUserId ? 'received' : 'sent');
+                    div.textContent = msg.body;
+                    chatBox.appendChild(div);
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                  }
+
+                  function loadUsers(){
+                    fetch('chat_users.php').then(r=>r.json()).then(data=>{
+                      if(data.success){
+                        userList.innerHTML = '';
+                        data.users.forEach(u=>{
+                          const item = document.createElement('div');
+                          item.className = 'admin-user-item';
+                          item.textContent = u.name || u.email;
+                          item.addEventListener('click', ()=>{
+                            activeUserId = u.id;
+                            lastId = 0;
+                            chatHeader.textContent = 'Chat with ' + (u.name || u.email);
+                            chatBox.innerHTML='';
+                            fetchMessages();
+                          });
+                          userList.appendChild(item);
+                        });
+                      }
+                    });
+                  }
+
+                  function fetchMessages(){
+                    if(!activeUserId) return;
+                    fetch('chat_fetch.php?partner=' + activeUserId + '&since=' + lastId)
+                      .then(r=>r.json())
+                      .then(data=>{
+                        if(data.success && data.messages){
+                          data.messages.forEach(m=>{ appendMessage(m); lastId = Math.max(lastId, parseInt(m.id)); });
+                        }
+                      });
+                  }
+
+                  form.addEventListener('submit', function(e){
+                    e.preventDefault();
+                    if(!activeUserId) return;
+                    const v = input.value.trim();
+                    if(!v) return;
+                    const fd = new FormData();
+                    fd.append('message', v);
+                    fd.append('to', activeUserId);
+                    fetch('chat_send.php', { method:'POST', body: fd })
+                      .then(r=>r.json())
+                      .then(data=>{ if(data.success){ input.value=''; fetchMessages(); } });
+                  });
+
+                  loadUsers();
+                  setInterval(()=>{ fetchMessages(); }, 3000);
+                })();
+                </script>
             </div>
 
             <!-- Products Section -->
