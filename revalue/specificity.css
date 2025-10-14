@@ -610,7 +610,7 @@ input {
     background: #333;
     color: #fff;
     text-align: center;
-    border-radius: 4px;
+    border-radius: 16px;
     padding: 10px;
     position: fixed;
     bottom: 30px;
@@ -740,6 +740,14 @@ input {
 .products-grid .btn-cart[disabled]:hover {
     box-shadow: none;
     opacity: 1;
+}
+
+.hv {
+    transition: all 0.3s ease;
+}
+
+.hv:hover {
+    transform: translateY(-2px) scale(1.05);
 }
 
 /* Simple responsiveness for cards */

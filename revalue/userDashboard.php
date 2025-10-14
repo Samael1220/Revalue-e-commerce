@@ -202,6 +202,7 @@ $allOrders = $allOrdersQuery->get_result();
     <link rel="stylesheet" href="user.css" />
     <!-- <link rel="stylesheet" href="app.css" /> -->
     <script defer src="user.js"></script>
+    
     <title>User Dashboard</title>
   </head>
   <body>
@@ -241,7 +242,7 @@ $allOrders = $allOrdersQuery->get_result();
             
           </div>
           <!-- PHP: Logout button will POST to logout.php -->
-          <button class="btn-logout" onclick="handleLogout()">Logout</button>
+          <button class="btn-logout" onclick="handleLogout()">Back</button>
         </div>
       </div>
     </nav>
@@ -482,52 +483,83 @@ $allOrders = $allOrdersQuery->get_result();
 </form>
 </section>
 
-<!--ADDRESS BOOK Section -->
-        <section class="address-book content-section" id="addresses">
-  <h2>Address Book</h2>
-
-  <div class="address-section">
-    <label>Main Address:</label>
-    <span><?php echo !empty($user['address']) ? htmlspecialchars($user['address']) : '<i>No address set</i>'; ?></span>
-    <div class="address-actions">
-      <form method="POST" action="" style="display:inline;">
-        <button type="submit" name="clear_main" class="remove-btn">Remove</button>
-      </form>
-      <form method="GET" action="editAddress.php" style="display:inline;">
-        <input type="hidden" name="type" value="main">
-        <button type="submit" class="edit-btn">Edit</button>
-      </form>
-    </div>
+<!-- ADDRESS BOOK Section -->
+<section id="addresses" class="content-section">
+  <div class="section-header">
+    <h1 class="section-title">Address Book</h1>
+    <p class="section-subtitle">
+      Manage your saved shipping and billing addresses.
+    </p>
   </div>
 
-  <div class="address-section">
-    <label>Home Address:</label>
-    <span><?php echo !empty($user['address2']) ? htmlspecialchars($user['address2']) : '<i>No address set</i>'; ?></span>
-    <div class="address-actions">
-      <form method="POST" action="" style="display:inline;">
-        <button type="submit" name="clear_home" class="remove-btn">Remove</button>
-      </form>
-      <form method="GET" action="editAddress.php" style="display:inline;">
-        <input type="hidden" name="type" value="home">
-        <button type="submit" class="edit-btn">Edit</button>
-      </form>
-    </div>
+  <div style="text-align: right; margin-bottom: var(--spacing-lg)">
+    <button class="btn btn-primary" onclick="showAddAddressModal()">
+      + Add Address
+    </button>
   </div>
 
-  <div class="address-section">
-    <label>Work Address:</label>
-    <span><?php echo !empty($user['address3']) ? htmlspecialchars($user['address3']) : '<i>No address set</i>'; ?></span>
-    <div class="address-actions">
-      <form method="POST" action="" style="display:inline;">
-        <button type="submit" name="clear_work" class="remove-btn">Remove</button>
-      </form>
-      <form method="GET" action="editAddress.php" style="display:inline;">
-        <input type="hidden" name="type" value="work">
-        <button type="submit" class="edit-btn">Edit</button>
-      </form>
+  <div class="address-grid">
+
+    <!-- MAIN ADDRESS -->
+    <div class="address-card">
+      <span class="address-type">Main</span>
+      <div class="address-details">
+        <?php echo !empty($user['address']) 
+          ? htmlspecialchars($user['address']) 
+          : '<i>No address set</i>'; ?>
+      </div>
+      <div class="address-actions">
+        <form method="POST" action="">
+          <button type="submit" name="clear_main" class="btn btn-danger">Remove</button>
+        </form>
+        <form method="GET" action="editAddress.php">
+          <input type="hidden" name="type" value="main">
+          <button type="submit" class="btn btn-secondary">Edit</button>
+        </form>
+      </div>
     </div>
+
+    <!-- HOME ADDRESS -->
+    <div class="address-card">
+      <span class="address-type">Home</span>
+      <div class="address-details">
+        <?php echo !empty($user['address2']) 
+          ? htmlspecialchars($user['address2']) 
+          : '<i>No address set</i>'; ?>
+      </div>
+      <div class="address-actions">
+        <form method="POST" action="">
+          <button type="submit" name="clear_home" class="btn btn-danger">Remove</button>
+        </form>
+        <form method="GET" action="editAddress.php">
+          <input type="hidden" name="type" value="home">
+          <button type="submit" class="btn btn-secondary">Edit</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- WORK ADDRESS -->
+    <div class="address-card">
+      <span class="address-type">Work</span>
+      <div class="address-details">
+        <?php echo !empty($user['address3']) 
+          ? htmlspecialchars($user['address3']) 
+          : '<i>No address set</i>'; ?>
+      </div>
+      <div class="address-actions">
+        <form method="POST" action="">
+          <button type="submit" name="clear_work" class="btn btn-danger">Remove</button>
+        </form>
+        <form method="GET" action="editAddress.php">
+          <input type="hidden" name="type" value="work">
+          <button type="submit" class="btn btn-secondary">Edit</button>
+        </form>
+      </div>
+    </div>
+
   </div>
 </section>
+
 
 
         <!-- Personal Details Section -->
