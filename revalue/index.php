@@ -179,14 +179,14 @@ $result = $conn->query($sql);
 
     <div class="right">
      
-      <button class="btn btn-outline"><i data-lucide="shopping-cart"></i></button>
+      <button class="btn btn-outline hv"><i data-lucide="shopping-cart"></i></button>
       <?php if(isset($_SESSION['user_id'])): ?>
-     <button class="btn btn-outline lcd" ><a href="userDashboard.php"><i data-lucide="user"></i> </a></button>
+     <button class="btn btn-outline lcd hv" ><a href="userDashboard.php"><i data-lucide="user"></i> </a></button>
       <form method="POST" style="display:inline;">
-        <button class="btn btn-outline" type="submit" name="logout">Log out</button>
+        <button class="btn btn-outline hv" type="submit" name="logout">Log out</button>
       </form>
       <?php else: ?>
-      <button class="btn btn-outline" onclick="openModal()">My Account</button>
+      <button class="btn btn-outline hv" onclick="openModal()">My Account</button>
       <?php endif; ?>
     </div>
   </header>
@@ -432,6 +432,8 @@ $result = $conn->query($sql);
 <?php endif; ?>
 </main>
 
+<div id="toast-container"></div>
+
 <div id="toast" class="toast">
     <div class="toast-content">
         <div class="toast-icon"></div>
@@ -439,7 +441,6 @@ $result = $conn->query($sql);
             <div class="toast-title"></div>
             <div class="toast-message"></div>
         </div>
-        <button class="toast-close" onclick="hideToast()">&times;</button>
     </div>
     <div class="toast-progress"></div>
 </div>
