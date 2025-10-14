@@ -44,12 +44,16 @@ $conn->close();
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="stylesheet" href="styleForAdmin.css" />
         <script defer src="admin.js"></script>
+           <link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+/>
         <title>Admin Dashboard</title>
     </head>
     <body>
         <!-- Sidebar -->
         <div class="sidebar">
-            <div class="logo">W</div>
+           <div class="logo"> <i class="fa-solid fa-leaf" style="color:darkgreen"></i></div>
 
             <div class="nav-item active" data-section="overview">
                 <svg viewBox="0 0 24 24" fill="currentColor">
@@ -57,8 +61,7 @@ $conn->close();
                         d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"
                     />
                 </svg>
-                <span class="nav-label">Overview</span>
-                <span class="nav-tooltip">Overview</span>
+                
             </div>
 
             <div class="nav-item" data-section="orders">
@@ -67,8 +70,7 @@ $conn->close();
                         d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"
                     />
                 </svg>
-                <span class="nav-label">Orders</span>
-                <span class="nav-tooltip">Orders</span>
+               
             </div>
 
             <div class="nav-item" data-section="analytics">
@@ -77,8 +79,7 @@ $conn->close();
                         d="M3 3v18h18V3H3zm6 14H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"
                     />
                 </svg>
-                <span class="nav-label">Analytics</span>
-                <span class="nav-tooltip">Analytics</span>
+                
             </div>
 
             <div class="nav-item" data-section="products">
@@ -87,8 +88,7 @@ $conn->close();
                         d="M12 2l-5.5 9h11L12 2zm0 3.84L13.93 9h-3.87L12 5.84zM17.5 13c-2.49 0-4.5 2.01-4.5 4.5s2.01 4.5 4.5 4.5 4.5-2.01 4.5-4.5-2.01-4.5-4.5-4.5zm0 7c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5zM3 21.5h8v-8H3v8zm2-6h4v4H5v-4z"
                     />
                 </svg>
-                <span class="nav-label">Products</span>
-                <span class="nav-tooltip">Products</span>
+               
             </div>
 
             <div class="nav-item" data-section="notifications">
@@ -97,8 +97,7 @@ $conn->close();
                         d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"
                     />
                 </svg>
-                <span class="nav-label">Notifications</span>
-                <span class="nav-tooltip">Notifications</span>
+               
             </div>
 
             <div class="nav-item settings-icon" data-section="settings">
@@ -107,8 +106,7 @@ $conn->close();
                         d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"
                     />
                 </svg>
-                <span class="nav-label">Settings</span>
-                <span class="nav-tooltip">Settings</span>
+                
             </div>
 
             <div class="nav-item logout-icon" data-section="logout">
@@ -117,8 +115,7 @@ $conn->close();
                         d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"
                     />
                 </svg>
-                <span class="nav-label">Logout</span>
-                <span class="nav-tooltip">Logout</span>
+                
             </div>
         </div>
 
@@ -363,11 +360,91 @@ $conn->close();
                 </div>
             </div>
 
-            <!-- Analytics Section (Empty Container) -->
+            <!-- Messaging Section (replaces Analytics) -->
             <div class="content-section" id="analytics">
-                <div class="empty-container">
-                    Analytics Section - Add your content here
+                <link rel="stylesheet" href="chat.css" />
+                <div class="admin-messaging">
+                    <div class="admin-user-list">
+                        <div class="admin-user-list-header">Users</div>
+                        <div class="admin-user-items" id="admin-user-items"></div>
+                    </div>
+                    <div class="admin-chat">
+                        <div class="admin-chat-header" id="admin-chat-header">Select a user</div>
+                        <div class="admin-chat-box" id="admin-chat-box"></div>
+                        <form class="admin-chat-form" id="admin-chat-form">
+                            <input type="text" id="admin-chat-input" placeholder="Type a message..." autocomplete="off" />
+                            <button type="submit">Send</button>
+                        </form>
+                    </div>
                 </div>
+                <script>
+                (function(){
+                  const userList = document.getElementById('admin-user-items');
+                  const chatBox = document.getElementById('admin-chat-box');
+                  const chatHeader = document.getElementById('admin-chat-header');
+                  const form = document.getElementById('admin-chat-form');
+                  const input = document.getElementById('admin-chat-input');
+                  let activeUserId = 0;
+                  let lastId = 0;
+
+                  function appendMessage(msg){
+                    const div = document.createElement('div');
+                    // sender comparison will be done server-side by ids
+                    div.className = 'message ' + (msg.sender_id == activeUserId ? 'received' : 'sent');
+                    div.textContent = msg.body;
+                    chatBox.appendChild(div);
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                  }
+
+                  function loadUsers(){
+                    fetch('chat_users.php').then(r=>r.json()).then(data=>{
+                      if(data.success){
+                        userList.innerHTML = '';
+                        data.users.forEach(u=>{
+                          const item = document.createElement('div');
+                          item.className = 'admin-user-item';
+                          item.textContent = u.name || u.email;
+                          item.addEventListener('click', ()=>{
+                            activeUserId = u.id;
+                            lastId = 0;
+                            chatHeader.textContent = 'Chat with ' + (u.name || u.email);
+                            chatBox.innerHTML='';
+                            fetchMessages();
+                          });
+                          userList.appendChild(item);
+                        });
+                      }
+                    });
+                  }
+
+                  function fetchMessages(){
+                    if(!activeUserId) return;
+                    fetch('chat_fetch.php?partner=' + activeUserId + '&since=' + lastId)
+                      .then(r=>r.json())
+                      .then(data=>{
+                        if(data.success && data.messages){
+                          data.messages.forEach(m=>{ appendMessage(m); lastId = Math.max(lastId, parseInt(m.id)); });
+                        }
+                      });
+                  }
+
+                  form.addEventListener('submit', function(e){
+                    e.preventDefault();
+                    if(!activeUserId) return;
+                    const v = input.value.trim();
+                    if(!v) return;
+                    const fd = new FormData();
+                    fd.append('message', v);
+                    fd.append('to', activeUserId);
+                    fetch('chat_send.php', { method:'POST', body: fd })
+                      .then(r=>r.json())
+                      .then(data=>{ if(data.success){ input.value=''; fetchMessages(); } });
+                  });
+
+                  loadUsers();
+                  setInterval(()=>{ fetchMessages(); }, 3000);
+                })();
+                </script>
             </div>
 
             <!-- Products Section -->

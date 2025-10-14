@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 02, 2025 at 09:51 AM
+-- Generation Time: Oct 14, 2025 at 01:20 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -40,7 +40,10 @@ CREATE TABLE `cart` (
 --
 
 INSERT INTO `cart` (`id`, `user_id`, `product_id`, `quantity`, `added_at`) VALUES
-(16, 1, 4, 1, '2025-10-02 07:40:35');
+(109, 1, 1, 1, '2025-10-14 10:54:10'),
+(110, 1, 5, 1, '2025-10-14 10:54:16'),
+(111, 1, 7, 1, '2025-10-14 10:54:21'),
+(112, 1, 11, 1, '2025-10-14 10:58:08');
 
 -- --------------------------------------------------------
 
@@ -62,9 +65,36 @@ CREATE TABLE `inventory` (
 --
 
 INSERT INTO `inventory` (`id`, `name`, `image`, `category`, `size`, `price`) VALUES
-(1, 'tshirt ni brual', 'uploads/1759377722_553683751_1270661271480494_3361838923040416034_n.jpg', 'vintage', 'M', 5000),
-(4, 'sando ni osit', 'uploads/1759378077_Screenshot 2025-08-27 221341.png', 'modern', 'XXL', 123123),
-(5, 'sumbrelo ni marvin', 'uploads/1759381740_Screenshot 2025-08-27 221704.png', 'vintage', 'M', 120000);
+(1, 'tshirt ni brual', 'uploads/1759999379_1.jpg', 'vintage', 'M', 5000),
+(4, 'sando ni osit', 'uploads/1759999370_466827131_17991821561718176_4971187432800159467_n.jpg', 'modern', 'XXL', 500),
+(5, 'sumbrelo ni marvin', 'uploads/1759999348_466923890_17991822080718176_299731762076899406_n.jpg', 'vintage', 'M', 206),
+(7, 't shirt', 'uploads/1759999323_466859525_17991823883718176_7967796178441113811_n.jpg', 'jackets', 'S', 270),
+(8, 'adadad', 'uploads/1759999313_466730130_17991824051718176_724116604996009720_n.jpg', 'modern', 'M', 125),
+(11, 'puti', 'uploads/1760010296_2.jpg', 'jackets', 'M', 200),
+(12, '3 musketeers', 'uploads/1760010380_466964397_17991823886718176_1726109815671737410_n.jpg', 'vintage', 'L', 200),
+(14, 'pork and beans', 'uploads/1760010430_466736746_17991824162718176_7790907259396982803_n.jpg', 'modern', 'M', 200);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `messages`
+--
+
+CREATE TABLE `messages` (
+  `id` int(11) NOT NULL,
+  `sender` varchar(100) DEFAULT NULL,
+  `receiver` varchar(100) DEFAULT NULL,
+  `message` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `messages`
+--
+
+INSERT INTO `messages` (`id`, `sender`, `receiver`, `message`, `created_at`) VALUES
+(1, 'heard_David@rocketmail.co', 'admin@revalue.com', 'dasd', '2025-10-07 12:28:42'),
+(2, 'heard_David@rocketmail.co', 'admin@revalue.com', 'asdasd', '2025-10-07 12:28:49');
 
 -- --------------------------------------------------------
 
@@ -90,7 +120,12 @@ INSERT INTO `orders` (`id`, `user_id`, `total_amount`, `order_date`, `status`, `
 (2, 1, 248123.00, '2025-10-02 07:13:13', 'Pending', 'Cash on Delivery'),
 (3, 1, 120000.00, '2025-10-02 07:19:54', 'Pending', 'Cash on Delivery'),
 (4, 1, 123123.00, '2025-10-02 07:22:23', 'Pending', 'Cash on Delivery'),
-(5, 1, 120000.00, '2025-10-02 07:41:04', 'Pending', 'Cash on Delivery');
+(5, 1, 120000.00, '2025-10-02 07:41:04', 'Pending', 'Cash on Delivery'),
+(6, 1, 270.00, '2025-10-02 12:23:30', 'Pending', 'Cash on Delivery'),
+(7, 1, 120000.00, '2025-10-03 04:46:53', 'Pending', 'Cash on Delivery'),
+(8, 1, 270.00, '2025-10-05 09:41:52', 'Pending', 'Cash on Delivery'),
+(9, 1, 500.00, '2025-10-07 10:38:09', 'Pending', 'Cash on Delivery'),
+(10, 1, 5831.00, '2025-10-09 11:42:50', 'Pending', 'Cash on Delivery');
 
 -- --------------------------------------------------------
 
@@ -119,7 +154,15 @@ INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `quantity`, `price`) 
 (6, 2, 5, 1, 120000.00),
 (7, 3, 5, 1, 0.00),
 (8, 4, 4, 1, 0.00),
-(9, 5, 5, 1, 0.00);
+(9, 5, 5, 1, 0.00),
+(10, 6, 7, 1, 0.00),
+(11, 7, 5, 1, 0.00),
+(12, 8, 7, 1, 0.00),
+(13, 9, 4, 1, 0.00),
+(14, 10, 5, 1, 0.00),
+(15, 10, 8, 1, 0.00),
+(16, 10, 4, 1, 0.00),
+(17, 10, 1, 1, 0.00);
 
 -- --------------------------------------------------------
 
@@ -137,6 +180,8 @@ CREATE TABLE `users` (
   `number` varchar(16) NOT NULL,
   `birth_date` date DEFAULT NULL,
   `address` varchar(255) NOT NULL,
+  `address2` varchar(255) DEFAULT NULL,
+  `address3` varchar(255) DEFAULT NULL,
   `country` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -144,9 +189,9 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `Full_name`, `E_mail`, `Pass`, `F_name`, `L_name`, `number`, `birth_date`, `address`, `country`) VALUES
-(1, 'David Heard', 'heard_David@rocketmail.co', '$2y$10$1Vbuz3X5tatkxEMcCrjpdu/dDEXEAz5C/EbSqP6qbsHz1y8bhQnKy', 'David', 'Heard', '09760492077', '1999-08-16', 'Landayan', 'PH'),
-(18, 'admin', 'admin@revalue.com', '$2y$10$CBUYIhNFR/qWt6gWa5wYQ.eRjLITzyQ3rqclKv/ZoZ79GnvltcgZ6', '', '', '0', NULL, '', '');
+INSERT INTO `users` (`id`, `Full_name`, `E_mail`, `Pass`, `F_name`, `L_name`, `number`, `birth_date`, `address`, `address2`, `address3`, `country`) VALUES
+(1, 'David Heard', 'heard_David@rocketmail.co', '$2y$10$1Vbuz3X5tatkxEMcCrjpdu/dDEXEAz5C/EbSqP6qbsHz1y8bhQnKy', 'David', 'Heard', '09760492077', '1999-08-16', 'centro sur', '', '', 'PH'),
+(18, 'admin', 'admin@revalue.com', '$2y$10$CBUYIhNFR/qWt6gWa5wYQ.eRjLITzyQ3rqclKv/ZoZ79GnvltcgZ6', '', '', '0', NULL, '', NULL, NULL, '');
 
 --
 -- Indexes for dumped tables
@@ -164,6 +209,12 @@ ALTER TABLE `cart`
 -- Indexes for table `inventory`
 --
 ALTER TABLE `inventory`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `messages`
+--
+ALTER TABLE `messages`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -196,25 +247,31 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=113;
 
 --
 -- AUTO_INCREMENT for table `inventory`
 --
 ALTER TABLE `inventory`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+
+--
+-- AUTO_INCREMENT for table `messages`
+--
+ALTER TABLE `messages`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `users`

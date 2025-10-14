@@ -12,7 +12,10 @@ function closeModal() {
 
 // Open modal on page load
 document.addEventListener("DOMContentLoaded", function () {
-    openModal();
+    const authOverlayInit = document.getElementById("auth-overlay");
+    if (authOverlayInit) {
+        openModal();
+    }
 
     // Prevent default jumps for '#' links to avoid layout shifts
     document.querySelectorAll('a[href="#"]').forEach(function (a) {
@@ -93,11 +96,16 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // Close modal when clicking outside
-document.getElementById("auth-overlay").addEventListener("click", function (e) {
-    if (e.target === this) {
-        closeModal();
+(function () {
+    const overlay = document.getElementById("auth-overlay");
+    if (overlay) {
+        overlay.addEventListener("click", function (e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
     }
-});
+})();
 
 // Close modal with Escape key
 document.addEventListener("keydown", function (e) {
@@ -129,17 +137,15 @@ function showToast(message, type = "success", title = null) {
         toastTitle.style.display = "block";
     }
 
-    // Show toast
+    // Prepare animation
     toast.style.display = "block";
+    toast.offsetHeight; // Force reflow before adding 'show'
+    toast.classList.add("show");
 
-    // Trigger entrance animation from bottom
-    setTimeout(() => {
-        toast.classList.add("show");
-        // Reset progress bar
-        toastProgress.style.animation = "none";
-        toastProgress.offsetHeight; // Trigger reflow
-        toastProgress.style.animation = "toastProgress 4s linear forwards";
-    }, 10);
+    // Reset progress animation
+    toastProgress.style.animation = "none";
+    toastProgress.offsetHeight; // Reflow again
+    toastProgress.style.animation = "toastProgress 4s linear forwards";
 
     // Auto hide after 4 seconds
     setTimeout(() => {
@@ -151,12 +157,10 @@ function hideToast() {
     const toast = document.getElementById("toast");
     const toastProgress = toast.querySelector(".toast-progress");
 
-    // Stop progress animation
     toastProgress.style.animationPlayState = "paused";
-
-    // Hide toast
     toast.classList.remove("show");
 
+    // Wait for transition to end before hiding
     setTimeout(() => {
         toast.style.display = "none";
         toast.className = "toast";

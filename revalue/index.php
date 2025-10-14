@@ -160,6 +160,7 @@ $result = $conn->query($sql);
   rel="stylesheet"
   href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <link rel="stylesheet" href="app.css" />
+<link rel="stylesheet" href="chat.css">
 <link rel="stylesheet" href="specificity.css" />
 <script defer src="script.js"></script>
 </head>
@@ -168,7 +169,7 @@ $result = $conn->query($sql);
 <div class="cont-head">
   <header class="header ps-mg">
     <div class="left">
-<h2 style="margin-bottom: 0;"><i class="fa-solid fa-leaf" style="color:darkgreen"></i></h2>
+    <h2 style="margin-bottom: 0;"><i class="fa-solid fa-leaf" style="color:darkgreen"></i></h2>
       <h3>Re-Value.PH</h3>
     </div>
 
@@ -177,15 +178,15 @@ $result = $conn->query($sql);
     </div>
 
     <div class="right">
-      <button class="btn btn-outline">Categories</button>
-      <button class="btn btn-outline">Add to Cart</button>
+     
+      <button class="btn btn-outline hv"><i data-lucide="shopping-cart"></i></button>
       <?php if(isset($_SESSION['user_id'])): ?>
-     <button class="btn btn-outline lcd" ><a href="userDashboard.php"><i data-lucide="user"></i> </a></button>
+     <button class="btn btn-outline lcd hv" ><a href="userDashboard.php"><i data-lucide="user"></i> </a></button>
       <form method="POST" style="display:inline;">
-        <button class="btn btn-outline" type="submit" name="logout">Log out</button>
+        <button class="btn btn-outline hv" type="submit" name="logout">Log out</button>
       </form>
       <?php else: ?>
-      <button class="btn btn-outline" onclick="openModal()">My Account</button>
+      <button class="btn btn-outline hv" onclick="openModal()">My Account</button>
       <?php endif; ?>
     </div>
   </header>
@@ -367,7 +368,8 @@ $result = $conn->query($sql);
 
     $conn->close();
     ?>
-  </div>
+
+    
 </div>
 
 
@@ -426,8 +428,11 @@ $result = $conn->query($sql);
     </div>
   </div>
 </div>
+
 <?php endif; ?>
 </main>
+
+<div id="toast-container"></div>
 
 <div id="toast" class="toast">
     <div class="toast-content">
@@ -436,7 +441,6 @@ $result = $conn->query($sql);
             <div class="toast-title"></div>
             <div class="toast-message"></div>
         </div>
-        <button class="toast-close" onclick="hideToast()">&times;</button>
     </div>
     <div class="toast-progress"></div>
 </div>
@@ -471,6 +475,11 @@ $result = $conn->query($sql);
   });
 
 </script>
+
+<?php if(isset($_SESSION['user_id'])): ?>
+
+
+<?php endif; ?>
 
 </body>
 </html>

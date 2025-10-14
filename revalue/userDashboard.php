@@ -2,6 +2,8 @@
 include("db.php"); 
 session_start();
 
+
+
 //address book
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_id = $_SESSION['user_id'];
@@ -202,6 +204,7 @@ $allOrders = $allOrdersQuery->get_result();
     <link rel="stylesheet" href="user.css" />
     <!-- <link rel="stylesheet" href="app.css" /> -->
     <script defer src="user.js"></script>
+    
     <title>User Dashboard</title>
   </head>
   <body>
@@ -241,7 +244,7 @@ $allOrders = $allOrdersQuery->get_result();
             
           </div>
           <!-- PHP: Logout button will POST to logout.php -->
-          <button class="btn-logout" onclick="handleLogout()">Logout</button>
+          <button class="btn-logout" onclick="handleLogout()">Back</button>
         </div>
       </div>
     </nav>
@@ -266,8 +269,8 @@ $allOrders = $allOrdersQuery->get_result();
             </li>
             <li class="nav-item">
               <a href="#" class="nav-link" data-section="spent">
-                <span class="nav-icon">💰</span>
-                <span>Total Spent</span>
+                <span class="nav-icon">🛒</span>
+                <span>My Cart</span>
               </a>
             </li>
             <li class="nav-item">
@@ -353,60 +356,69 @@ $allOrders = $allOrdersQuery->get_result();
           </div>
         </section>
 
-        <!-- Orders Section -->
-        <section id="orders" class="content-section">
-          <div class="section-header">
-            <h1 class="section-title">My Orders</h1>
-            <p class="section-subtitle">
-              Track and manage all your orders in one place.
-            </p>
-          </div>
 
-          <div class="table-container">
-            <table class="data-table">
-              <thead>
+
+<!-- Orders Section -->
+<section id="orders" class="content-section">
+<?php
+
+
+if (!isset($_SESSION['user_id'])) {
+    echo "<p class='text-red-500'>No user session found.</p>";
+    exit;
+}
+
+$user_id = $_SESSION['user_id'];
+
+// Fetch all orders for this user
+$query = "SELECT id, total_amount, order_date, status, payment_method FROM orders WHERE user_id = $user_id ORDER BY order_date DESC";
+$result = mysqli_query($conn, $query);
+?>
+
+<div class="p-6">
+    <h2 class="text-2xl font-semibold mb-4">My Orders</h2>
+    <p class="text-gray-600 mb-6">Track and manage all your orders in one place.</p>
+
+    <div class="bg-white rounded-2xl shadow-md overflow-hidden">
+        <table class="min-w-full text-left border-collapse">
+            <thead class="bg-gray-100 text-gray-700">
                 <tr>
-                  <th>Order #</th>
-                  <th>Date</th>
-                  <th>Items</th>
-                  <th>Status</th>
-                  <th>Total</th>
+                    <th class="py-3 px-5">Order ID</th>
+                    <th class="py-3 px-5">Total Amount (₱)</th>
+                    <th class="py-3 px-5">Order Date</th>
+                    <th class="py-3 px-5">Status</th>
+                    <th class="py-3 px-5">Payment Method</th>
                 </tr>
-              </thead>
-              <tbody id="ordersTable">
-  <?php if ($allOrders->num_rows > 0): ?>
-    <?php while ($order = $allOrders->fetch_assoc()): ?>
-      <tr>
-        <td>#<?= $order['id'] ?></td>
-        <td><?= date("M d, Y", strtotime($order['order_date'])) ?></td>
-        <td>
-          <?php
-          $itemsQuery = $conn->prepare("SELECT i.name, oi.quantity 
-                                        FROM order_items oi 
-                                        JOIN inventory i ON oi.product_id = i.id 
-                                        WHERE oi.order_id=?");
-          $itemsQuery->bind_param("i", $order['id']);
-          $itemsQuery->execute();
-          $items = $itemsQuery->get_result();
-          $itemList = [];
-          while ($item = $items->fetch_assoc()) {
-              $itemList[] = $item['name'] . " (x" . $item['quantity'] . ")";
-          }
-          echo implode(", ", $itemList);
-          ?>
-        </td>
-        <td><?= htmlspecialchars($order['status']) ?></td>
-        <td>₱<?= number_format($order['total_amount'], 2) ?></td>
-      </tr>
-    <?php endwhile; ?>
-  <?php else: ?>
-    <tr><td colspan="5">No orders found.</td></tr>
-  <?php endif; ?>
-</tbody>
+            </thead>
+            <tbody class="divide-y">
+                <?php if (mysqli_num_rows($result) > 0): ?>
+                    <?php while ($row = mysqli_fetch_assoc($result)): ?>
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="py-3 px-5"><?php echo htmlspecialchars($row['id']); ?></td>
+                            <td class="py-3 px-5">₱<?php echo number_format($row['total_amount'], 2); ?></td>
+                            <td class="py-3 px-5"><?php echo htmlspecialchars($row['order_date']); ?></td>
+                            <td class="py-3 px-5">
+                                <span class="px-2 py-1 rounded-full text-sm 
+                                    <?php echo ($row['status'] === 'Pending') ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'; ?>">
+                                    <?php echo htmlspecialchars($row['status']); ?>
+                                </span>
+                            </td>
+                            <td class="py-3 px-5"><?php echo htmlspecialchars($row['payment_method']); ?></td>
+                        </tr>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="5" class="text-center text-gray-500 py-6">
+                            No orders found. Orders will be loaded from the database.
+                        </td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+</section>
 
-            </table>
-          </div>
-        </section>
 
         <!-- Cart Section -->
 <section id="spent" class="content-section">
@@ -482,52 +494,83 @@ $allOrders = $allOrdersQuery->get_result();
 </form>
 </section>
 
-<!--ADDRESS BOOK Section -->
-        <section class="address-book">
-  <h2>Address Book</h2>
-
-  <div class="address-section">
-    <label>Main Address:</label>
-    <span><?php echo !empty($user['address']) ? htmlspecialchars($user['address']) : '<i>No address set</i>'; ?></span>
-    <div class="address-actions">
-      <form method="POST" action="" style="display:inline;">
-        <button type="submit" name="clear_main" class="remove-btn">Remove</button>
-      </form>
-      <form method="GET" action="editAddress.php" style="display:inline;">
-        <input type="hidden" name="type" value="main">
-        <button type="submit" class="edit-btn">Edit</button>
-      </form>
-    </div>
+<!-- ADDRESS BOOK Section -->
+<section id="addresses" class="content-section">
+  <div class="section-header">
+    <h1 class="section-title">Address Book</h1>
+    <p class="section-subtitle">
+      Manage your saved shipping and billing addresses.
+    </p>
   </div>
 
-  <div class="address-section">
-    <label>Home Address:</label>
-    <span><?php echo !empty($user['address2']) ? htmlspecialchars($user['address2']) : '<i>No address set</i>'; ?></span>
-    <div class="address-actions">
-      <form method="POST" action="" style="display:inline;">
-        <button type="submit" name="clear_home" class="remove-btn">Remove</button>
-      </form>
-      <form method="GET" action="editAddress.php" style="display:inline;">
-        <input type="hidden" name="type" value="home">
-        <button type="submit" class="edit-btn">Edit</button>
-      </form>
-    </div>
+  <div style="text-align: right; margin-bottom: var(--spacing-lg)">
+    <button class="btn btn-primary" onclick="showAddAddressModal()">
+      + Add Address
+    </button>
   </div>
 
-  <div class="address-section">
-    <label>Work Address:</label>
-    <span><?php echo !empty($user['address3']) ? htmlspecialchars($user['address3']) : '<i>No address set</i>'; ?></span>
-    <div class="address-actions">
-      <form method="POST" action="" style="display:inline;">
-        <button type="submit" name="clear_work" class="remove-btn">Remove</button>
-      </form>
-      <form method="GET" action="editAddress.php" style="display:inline;">
-        <input type="hidden" name="type" value="work">
-        <button type="submit" class="edit-btn">Edit</button>
-      </form>
+  <div class="address-grid">
+
+    <!-- MAIN ADDRESS -->
+    <div class="address-card">
+      <span class="address-type">Main</span>
+      <div class="address-details">
+        <?php echo !empty($user['address']) 
+          ? htmlspecialchars($user['address']) 
+          : '<i>No address set</i>'; ?>
+      </div>
+      <div class="address-actions">
+        <form method="POST" action="">
+          <button type="submit" name="clear_main" class="btn btn-danger">Remove</button>
+        </form>
+        <form method="GET" action="editAddress.php">
+          <input type="hidden" name="type" value="main">
+          <button type="submit" class="btn btn-secondary">Edit</button>
+        </form>
+      </div>
     </div>
+
+    <!-- HOME ADDRESS -->
+    <div class="address-card">
+      <span class="address-type">Home</span>
+      <div class="address-details">
+        <?php echo !empty($user['address2']) 
+          ? htmlspecialchars($user['address2']) 
+          : '<i>No address set</i>'; ?>
+      </div>
+      <div class="address-actions">
+        <form method="POST" action="">
+          <button type="submit" name="clear_home" class="btn btn-danger">Remove</button>
+        </form>
+        <form method="GET" action="editAddress.php">
+          <input type="hidden" name="type" value="home">
+          <button type="submit" class="btn btn-secondary">Edit</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- WORK ADDRESS -->
+    <div class="address-card">
+      <span class="address-type">Work</span>
+      <div class="address-details">
+        <?php echo !empty($user['address3']) 
+          ? htmlspecialchars($user['address3']) 
+          : '<i>No address set</i>'; ?>
+      </div>
+      <div class="address-actions">
+        <form method="POST" action="">
+          <button type="submit" name="clear_work" class="btn btn-danger">Remove</button>
+        </form>
+        <form method="GET" action="editAddress.php">
+          <input type="hidden" name="type" value="work">
+          <button type="submit" class="btn btn-secondary">Edit</button>
+        </form>
+      </div>
+    </div>
+
   </div>
 </section>
+
 
 
         <!-- Personal Details Section -->
