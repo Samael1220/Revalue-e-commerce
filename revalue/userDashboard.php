@@ -2,6 +2,8 @@
 include("db.php"); 
 session_start();
 
+
+
 //address book
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_id = $_SESSION['user_id'];
@@ -267,8 +269,8 @@ $allOrders = $allOrdersQuery->get_result();
             </li>
             <li class="nav-item">
               <a href="#" class="nav-link" data-section="spent">
-                <span class="nav-icon">💰</span>
-                <span>Total Spent</span>
+                <span class="nav-icon">🛒</span>
+                <span>My Cart</span>
               </a>
             </li>
             <li class="nav-item">
@@ -354,60 +356,69 @@ $allOrders = $allOrdersQuery->get_result();
           </div>
         </section>
 
-        <!-- Orders Section -->
-        <section id="orders" class="content-section">
-          <div class="section-header">
-            <h1 class="section-title">My Orders</h1>
-            <p class="section-subtitle">
-              Track and manage all your orders in one place.
-            </p>
-          </div>
 
-          <div class="table-container">
-            <table class="data-table">
-              <thead>
+
+<!-- Orders Section -->
+<section id="orders" class="content-section">
+<?php
+
+
+if (!isset($_SESSION['user_id'])) {
+    echo "<p class='text-red-500'>No user session found.</p>";
+    exit;
+}
+
+$user_id = $_SESSION['user_id'];
+
+// Fetch all orders for this user
+$query = "SELECT id, total_amount, order_date, status, payment_method FROM orders WHERE user_id = $user_id ORDER BY order_date DESC";
+$result = mysqli_query($conn, $query);
+?>
+
+<div class="p-6">
+    <h2 class="text-2xl font-semibold mb-4">My Orders</h2>
+    <p class="text-gray-600 mb-6">Track and manage all your orders in one place.</p>
+
+    <div class="bg-white rounded-2xl shadow-md overflow-hidden">
+        <table class="min-w-full text-left border-collapse">
+            <thead class="bg-gray-100 text-gray-700">
                 <tr>
-                  <th>Order #</th>
-                  <th>Date</th>
-                  <th>Items</th>
-                  <th>Status</th>
-                  <th>Total</th>
+                    <th class="py-3 px-5">Order ID</th>
+                    <th class="py-3 px-5">Total Amount (₱)</th>
+                    <th class="py-3 px-5">Order Date</th>
+                    <th class="py-3 px-5">Status</th>
+                    <th class="py-3 px-5">Payment Method</th>
                 </tr>
-              </thead>
-              <tbody id="ordersTable">
-  <?php if ($allOrders->num_rows > 0): ?>
-    <?php while ($order = $allOrders->fetch_assoc()): ?>
-      <tr>
-        <td>#<?= $order['id'] ?></td>
-        <td><?= date("M d, Y", strtotime($order['order_date'])) ?></td>
-        <td>
-          <?php
-          $itemsQuery = $conn->prepare("SELECT i.name, oi.quantity 
-                                        FROM order_items oi 
-                                        JOIN inventory i ON oi.product_id = i.id 
-                                        WHERE oi.order_id=?");
-          $itemsQuery->bind_param("i", $order['id']);
-          $itemsQuery->execute();
-          $items = $itemsQuery->get_result();
-          $itemList = [];
-          while ($item = $items->fetch_assoc()) {
-              $itemList[] = $item['name'] . " (x" . $item['quantity'] . ")";
-          }
-          echo implode(", ", $itemList);
-          ?>
-        </td>
-        <td><?= htmlspecialchars($order['status']) ?></td>
-        <td>₱<?= number_format($order['total_amount'], 2) ?></td>
-      </tr>
-    <?php endwhile; ?>
-  <?php else: ?>
-    <tr><td colspan="5">No orders found.</td></tr>
-  <?php endif; ?>
-</tbody>
+            </thead>
+            <tbody class="divide-y">
+                <?php if (mysqli_num_rows($result) > 0): ?>
+                    <?php while ($row = mysqli_fetch_assoc($result)): ?>
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="py-3 px-5"><?php echo htmlspecialchars($row['id']); ?></td>
+                            <td class="py-3 px-5">₱<?php echo number_format($row['total_amount'], 2); ?></td>
+                            <td class="py-3 px-5"><?php echo htmlspecialchars($row['order_date']); ?></td>
+                            <td class="py-3 px-5">
+                                <span class="px-2 py-1 rounded-full text-sm 
+                                    <?php echo ($row['status'] === 'Pending') ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'; ?>">
+                                    <?php echo htmlspecialchars($row['status']); ?>
+                                </span>
+                            </td>
+                            <td class="py-3 px-5"><?php echo htmlspecialchars($row['payment_method']); ?></td>
+                        </tr>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="5" class="text-center text-gray-500 py-6">
+                            No orders found. Orders will be loaded from the database.
+                        </td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+</section>
 
-            </table>
-          </div>
-        </section>
 
         <!-- Cart Section -->
 <section id="spent" class="content-section">

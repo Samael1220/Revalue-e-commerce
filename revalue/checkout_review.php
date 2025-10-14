@@ -10,7 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// If no items selected, redirect back to cart
+// If no items selected, redirect back to dashboard/cart
 if (!isset($_POST['cart_ids']) || empty($_POST['cart_ids'])) {
     header("Location: userDashboard.php");
     exit();
@@ -18,17 +18,16 @@ if (!isset($_POST['cart_ids']) || empty($_POST['cart_ids'])) {
 
 $cart_ids = $_POST['cart_ids'];
 
-// Fetch selected cart items
+// Prepare placeholders for SQL IN (...)
 $placeholders = implode(',', array_fill(0, count($cart_ids), '?'));
 $types = str_repeat('i', count($cart_ids));
 
-$sql = "SELECT c.id AS cart_id, i.name, i.size, i.price, i.image, c.quantity, c.product_id
+// Fetch selected cart items
+$sql = "SELECT c.id AS cart_id, i.id AS product_id, i.name, i.size, i.price, i.image, c.quantity
         FROM cart c
         JOIN inventory i ON c.product_id = i.id
         WHERE c.id IN ($placeholders) AND c.user_id=?";
 $stmt = $conn->prepare($sql);
-
-// Bind params dynamically
 $params = array_merge($cart_ids, [$user_id]);
 $stmt->bind_param($types . 'i', ...$params);
 $stmt->execute();
@@ -36,6 +35,7 @@ $result = $stmt->get_result();
 
 $selectedItems = [];
 $grandTotal = 0;
+
 while ($row = $result->fetch_assoc()) {
     $selectedItems[] = $row;
     $grandTotal += $row['price'] * $row['quantity'];
@@ -43,28 +43,46 @@ while ($row = $result->fetch_assoc()) {
 
 // Handle order confirmation
 if (isset($_POST['confirm_order'])) {
-    // Insert order
-    $orderStmt = $conn->prepare("INSERT INTO orders (user_id, total_amount, payment_method, order_date) VALUES (?, ?, ?, NOW())");
-    $paymentMethod = "Cash on Delivery";
-    $orderStmt->bind_param("ids", $user_id, $grandTotal, $paymentMethod);
-    $orderStmt->execute();
-    $order_id = $orderStmt->insert_id;
+    $conn->begin_transaction(); // Start transaction
 
-    // Insert order items
-    $itemStmt = $conn->prepare("INSERT INTO order_items (order_id, product_id, quantity) VALUES (?, ?, ?)");
-    foreach ($selectedItems as $item) {
-        $itemStmt->bind_param("iii", $order_id, $item['product_id'], $item['quantity']);
-        $itemStmt->execute();
+    try {
+        // 1️⃣ Insert order record
+        $paymentMethod = "Cash on Delivery";
+        $orderStmt = $conn->prepare("INSERT INTO orders (user_id, total_amount, payment_method, order_date) VALUES (?, ?, ?, NOW())");
+        $orderStmt->bind_param("ids", $user_id, $grandTotal, $paymentMethod);
+        $orderStmt->execute();
+        $order_id = $orderStmt->insert_id;
+
+        // 2️⃣ Insert order items and remove from inventory
+        $itemStmt = $conn->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
+        $deleteInventoryStmt = $conn->prepare("DELETE FROM inventory WHERE id = ?");
+
+        foreach ($selectedItems as $item) {
+            $itemStmt->bind_param("iiid", $order_id, $item['product_id'], $item['quantity'], $item['price']);
+            $itemStmt->execute();
+
+            // Delete product from inventory (since only 1 available)
+            $deleteInventoryStmt->bind_param("i", $item['product_id']);
+            $deleteInventoryStmt->execute();
+        }
+
+        // 3️⃣ Remove items from cart
+        $deleteCartStmt = $conn->prepare("DELETE FROM cart WHERE id IN ($placeholders) AND user_id=?");
+        $deleteCartStmt->bind_param($types . 'i', ...$params);
+        $deleteCartStmt->execute();
+
+        $conn->commit(); // ✅ All good — commit transaction
+
+        $_SESSION['order_success'] = "✅ Your order has been placed successfully!";
+        header("Location: order_success.php");
+        exit();
+
+    } catch (Exception $e) {
+        $conn->rollback(); // ❌ Something went wrong — undo everything
+        $_SESSION['order_error'] = "⚠️ Checkout failed: " . $e->getMessage();
+        header("Location: userDashboard.php");
+        exit();
     }
-
-    // Remove items from cart
-    $deleteStmt = $conn->prepare("DELETE FROM cart WHERE id IN ($placeholders) AND user_id=?");
-    $deleteStmt->bind_param($types . 'i', ...$params);
-    $deleteStmt->execute();
-
-    $_SESSION['order_success'] = "✅ Your order has been placed successfully!";
-    header("Location: order_success.php"); // Create a success page
-    exit();
 }
 ?>
 
