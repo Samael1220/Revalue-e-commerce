@@ -61,7 +61,7 @@ if (isset($_POST['confirm_order'])) {
             $itemStmt->bind_param("iiid", $order_id, $item['product_id'], $item['quantity'], $item['price']);
             $itemStmt->execute();
 
-            // Delete product from inventory
+            // Delete product from inventory (since only 1 available)
             $deleteInventoryStmt->bind_param("i", $item['product_id']);
             $deleteInventoryStmt->execute();
         }
