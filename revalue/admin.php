@@ -174,191 +174,206 @@ $conn->close();
             </div>
 
             <!-- Overview Section -->
-            <div class="content-section active" id="overview">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon green">✓</div>
-                        <div class="stat-info">
-                            <div class="stat-label">Orders Completed</div>
-                            <div class="stat-value">300K</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon blue">⏳</div>
-                        <div class="stat-info">
-                            <div class="stat-label">Orders Pending</div>
-                            <div class="stat-value">10K</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon red">✕</div>
-                        <div class="stat-info">
-                            <div class="stat-label">Orders Cancelled</div>
-                            <div class="stat-value">100K</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon purple">👤</div>
-                        <div class="stat-info">
-                            <div class="stat-label">Total Users</div>
-                            <div class="stat-value">350K</div>
-                        </div>
-                    </div>
-                </div>
+<div class="content-section active" id="overview">
+    <?php
+    include('db.php');
 
-                <div class="order-stats">
-                    <div class="order-stats-header">
-                        <div>
-                            <span class="order-stats-title">Order Stats</span>
-                            <span class="orders-ready"
-                                >25+ Orders Ready to be Shipped</span
-                            >
-                        </div>
-                        <select class="sort-dropdown">
-                            <option>Sort by: Best Sellers</option>
-                            <option>Sort by: Recent</option>
-                            <option>Sort by: Price</option>
-                        </select>
-                    </div>
-                    <table class="orders-table">
-                        <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>Total</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                                <th>Time</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <div class="product-cell">
-                                        <div
-                                            class="product-img"
-                                            style="background: #f0f0f0"
-                                        ></div>
-                                        <span>Black Dress</span>
-                                    </div>
-                                </td>
-                                <td>1x</td>
-                                <td>
-                                    <span class="status-badge paid">Paid</span>
-                                </td>
-                                <td>01/01/20</td>
-                                <td>15:30</td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="product-cell">
-                                        <div
-                                            class="product-img"
-                                            style="background: #f0f0f0"
-                                        ></div>
-                                        <span>Jacket</span>
-                                    </div>
-                                </td>
-                                <td>2x</td>
-                                <td>
-                                    <span class="status-badge pending"
-                                        >Not yet paid</span
-                                    >
-                                </td>
-                                <td>01/01/20</td>
-                                <td>15:30</td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="product-cell">
-                                        <div
-                                            class="product-img"
-                                            style="background: #f0f0f0"
-                                        ></div>
-                                        <span>Yellow Coat</span>
-                                    </div>
-                                </td>
-                                <td>4x</td>
-                                <td>
-                                    <span class="status-badge cancelled"
-                                        >Cancelled</span
-                                    >
-                                </td>
-                                <td>01/01/20</td>
-                                <td>15:30</td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="product-cell">
-                                        <div
-                                            class="product-img"
-                                            style="background: #f0f0f0"
-                                        ></div>
-                                        <span>Blue Jeans</span>
-                                    </div>
-                                </td>
-                                <td>1x</td>
-                                <td>
-                                    <span class="status-badge paid">Paid</span>
-                                </td>
-                                <td>01/01/20</td>
-                                <td>15:30</td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="product-cell">
-                                        <div
-                                            class="product-img"
-                                            style="background: #f0f0f0"
-                                        ></div>
-                                        <span>Hoodie</span>
-                                    </div>
-                                </td>
-                                <td>1x</td>
-                                <td>
-                                    <span class="status-badge paid">Paid</span>
-                                </td>
-                                <td>01/01/20</td>
-                                <td>15:30</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+    // --- Get summary counts ---
+    $completedOrders = $conn->query("SELECT COUNT(*) AS total FROM orders WHERE status='Completed'")->fetch_assoc()['total'];
+    $pendingOrders = $conn->query("SELECT COUNT(*) AS total FROM orders WHERE status='Pending'")->fetch_assoc()['total'];
+    $totalUsers = $conn->query("SELECT COUNT(*) AS total FROM users")->fetch_assoc()['total'];
 
-                <div class="side-stats">
-                    <div class="side-stat-card">
-                        <div class="side-stat-label">Total Visitors</div>
-                        <div class="side-stat-value">650K</div>
-                        <div class="sub-stat-label">New Orders</div>
-                        <div class="sub-stat-value">5K</div>
-                    </div>
-                    <div class="side-stat-card">
-                        <div class="side-stat-label">Product Views</div>
-                        <div class="side-stat-value">10K</div>
-                        <div class="sub-stat-label">Cancelled</div>
-                        <div class="sub-stat-value">2K</div>
-                    </div>
-                </div>
+    // --- Fetch last 25 orders ---
+    $orders = $conn->query("
+        SELECT o.*, u.Full_name
+        FROM orders o
+        JOIN users u ON o.user_id = u.id
+        ORDER BY o.id DESC
+        LIMIT 25
+    ");
+    ?>
 
-                <div class="charts-grid">
-                    <div class="chart-card">
-                        <h3 class="chart-title">Best Selling Products</h3>
-                        <div class="chart-placeholder">Chart</div>
-                    </div>
-                    <!-- <div class="chart-card">
-                        <h3 class="chart-title">Customer Retention</h3>
-                        <div class="chart-placeholder">
-                            Chart will be added here
-                        </div>
-                    </div> -->
-                </div>
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon green">✓</div>
+            <div class="stat-info">
+                <div class="stat-label">Orders Completed</div>
+                <div class="stat-value"><?= $completedOrders ?></div>
             </div>
-
-            <!-- Orders Section (Empty Container) -->
-            <div class="content-section" id="orders">
-                <div class="empty-container">
-                    Orders Section - Add your content here
-                </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon blue">⏳</div>
+            <div class="stat-info">
+                <div class="stat-label">Orders Pending</div>
+                <div class="stat-value"><?= $pendingOrders ?></div>
             </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon purple">👤</div>
+            <div class="stat-info">
+                <div class="stat-label">Total Users</div>
+                <div class="stat-value"><?= $totalUsers ?></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Stats -->
+    <div class="order-stats">
+        <div class="order-stats-header">
+            <div>
+                <span class="order-stats-title">Order Stats</span>
+                <span class="orders-ready"><?= $orders->num_rows ?> Recent Orders Displayed</span>
+            </div>
+        </div>
+
+        <table class="orders-table">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Total Amount</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php while ($row = $orders->fetch_assoc()): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($row['Full_name']) ?></td>
+                        <td>₱<?= number_format($row['total_amount'], 2) ?></td>
+                        <td>
+                            <span class="status-badge <?= $row['status'] === 'Completed' ? 'paid' : 'pending' ?>">
+                                <?= htmlspecialchars($row['status']) ?>
+                            </span>
+                        </td>
+                        <td><?= date('Y-m-d', strtotime($row['order_date'])) ?></td>
+                        <td><?= date('H:i', strtotime($row['order_date'])) ?></td>
+                    </tr>
+                <?php endwhile; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<!-- Orders Section -->
+<div class="content-section" id="orders">
+    <h2>Orders</h2>
+
+    <table class="orders-table">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>User Name</th>
+                <th>Email</th>
+                <th>Address</th>
+                <th>Products</th>
+                <th>Total Amount</th>
+                <th>Status</th>
+                <th>Order Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            include('db.php');
+
+            // Fetch all orders with user info
+            $query = "
+                SELECT 
+                    o.id AS order_id,
+                    o.total_amount,
+                    o.status,
+                    o.order_date,
+                    o.product_names,
+                    o.product_images,
+                    u.Full_name AS user_name,
+                    u.E_mail AS user_email,
+                    u.address AS user_address
+                FROM orders o
+                JOIN users u ON o.user_id = u.id
+                ORDER BY o.order_date DESC
+            ";
+
+            $orders = $conn->query($query);
+
+            if ($orders && $orders->num_rows > 0) {
+                while ($order = $orders->fetch_assoc()) {
+                    $statusClass = strtolower($order['status']) === 'completed' ? 'status-completed' : 'status-pending';
+                    $statusText = htmlspecialchars($order['status']);
+
+                    // Decode product names and images
+                    $names = json_decode($order['product_names'], true);
+                    $images = json_decode($order['product_images'], true);
+                    $productHTML = '';
+
+                    if (!empty($names) && !empty($images)) {
+                        foreach ($names as $idx => $name) {
+                            $img = isset($images[$idx]) ? $images[$idx] : '';
+                            $productHTML .= "<div class='order-product' style='margin-bottom:5px;'>";
+                            $productHTML .= "<img src='" . htmlspecialchars($img) . "' alt='" . htmlspecialchars($name) . "' style='width:50px;height:50px;object-fit:cover;margin-right:5px;'>";
+                            $productHTML .= "<span>" . htmlspecialchars($name) . "</span>";
+                            $productHTML .= "</div>";
+                        }
+                    }
+
+                    echo "
+                    <tr>
+                        <td>{$order['order_id']}</td>
+                        <td>" . htmlspecialchars($order['user_name']) . "</td>
+                        <td>" . htmlspecialchars($order['user_email']) . "</td>
+                        <td>" . htmlspecialchars($order['user_address']) . "</td>
+                        <td>$productHTML</td>
+                        <td>₱" . number_format($order['total_amount'], 2) . "</td>
+                        <td><span class='status-badge $statusClass' data-id='{$order['order_id']}'>$statusText</span></td>
+                        <td>" . htmlspecialchars($order['order_date']) . "</td>
+                    </tr>";
+                }
+            } else {
+                echo "<tr><td colspan='8'>No orders found.</td></tr>";
+            }
+            ?>
+        </tbody>
+    </table>
+</div>
+
+<!-- JavaScript to handle status click -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll(".status-badge.status-pending").forEach(badge => {
+        badge.addEventListener("click", function() {
+            const orderId = this.getAttribute("data-id");
+            const badgeElement = this;
+
+            if (confirm("Are you sure you want to mark this order as Completed?")) {
+                fetch("update_order_status.php", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: "order_id=" + encodeURIComponent(orderId)
+                })
+                .then(res => res.text())
+                .then(response => {
+                    if (response.trim() === "success") {
+                        badgeElement.textContent = "Completed";
+                        badgeElement.classList.remove("status-pending");
+                        badgeElement.classList.add("status-completed");
+                    } else {
+                        alert("Error updating order status.");
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("Error connecting to server.");
+                });
+            }
+        });
+    });
+});
+</script>
+
+
+
+
 
             <!-- Messaging Section (replaces Analytics) -->
             <div class="content-section" id="analytics">
@@ -514,4 +529,61 @@ $conn->close();
             </div>
         </div>
     </body>
+
+<!--AJAX-->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.order-status').forEach(status => {
+        status.addEventListener('click', function() {
+            const orderId = this.dataset.id;
+            const element = this;
+
+            if (element.textContent.trim().toLowerCase() === 'completed') return; // already done
+
+            fetch('update_order_status.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'order_id=' + orderId
+            })
+            .then(res => res.text())
+            .then(data => {
+                if (data === 'success') {
+                    element.textContent = 'Completed';
+                    element.classList.remove('status-pending');
+                    element.classList.add('status-completed');
+                } else {
+                    alert('Failed to update order status.');
+                }
+            });
+        });
+    });
+});
+</script>
+<script>
+document.querySelectorAll('.status-toggle').forEach(element => {
+    element.addEventListener('click', () => {
+        const orderId = element.getAttribute('data-id');
+        const currentStatus = element.textContent.trim();
+
+        const newStatus = currentStatus === 'Pending' ? 'Completed' : 'Pending';
+
+        fetch('update_order_status.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `order_id=${orderId}&new_status=${newStatus}`
+        })
+        .then(res => res.text())
+        .then(data => {
+            if (data === 'success') {
+                element.textContent = newStatus;
+                element.classList.toggle('status-pending');
+                element.classList.toggle('status-completed');
+            } else {
+                alert('Failed to update status.');
+            }
+        });
+    });
+});
+</script>
+
 </html>

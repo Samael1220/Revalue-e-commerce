@@ -10,7 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// If no items selected, redirect back to dashboard/cart
+// Check if cart items are selected
 if (!isset($_POST['cart_ids']) || empty($_POST['cart_ids'])) {
     header("Location: userDashboard.php");
     exit();
@@ -22,7 +22,7 @@ $cart_ids = $_POST['cart_ids'];
 $placeholders = implode(',', array_fill(0, count($cart_ids), '?'));
 $types = str_repeat('i', count($cart_ids));
 
-// Fetch selected cart items
+// Fetch selected cart items with their details
 $sql = "SELECT c.id AS cart_id, i.id AS product_id, i.name, i.size, i.price, i.image, c.quantity
         FROM cart c
         JOIN inventory i ON c.product_id = i.id
@@ -43,42 +43,51 @@ while ($row = $result->fetch_assoc()) {
 
 // Handle order confirmation
 if (isset($_POST['confirm_order'])) {
-    $conn->begin_transaction(); // Start transaction
+    $conn->begin_transaction();
 
     try {
-        // 1️⃣ Insert order record
+        // Collect product names and images
+        $productNames = [];
+        $productImages = [];
+        foreach ($selectedItems as $item) {
+            $productNames[] = $item['name'];
+            $productImages[] = $item['image'];
+        }
+
+        // Convert arrays to JSON for storage
+        $productNamesJson = json_encode($productNames);
+        $productImagesJson = json_encode($productImages);
+
+        // Insert order with product info
         $paymentMethod = "Cash on Delivery";
-        $orderStmt = $conn->prepare("INSERT INTO orders (user_id, total_amount, payment_method, order_date) VALUES (?, ?, ?, NOW())");
-        $orderStmt->bind_param("ids", $user_id, $grandTotal, $paymentMethod);
+        $orderStmt = $conn->prepare("
+            INSERT INTO orders 
+            (user_id, total_amount, payment_method, order_date, product_names, product_images) 
+            VALUES (?, ?, ?, NOW(), ?, ?)
+        ");
+        $orderStmt->bind_param("idsss", $user_id, $grandTotal, $paymentMethod, $productNamesJson, $productImagesJson);
         $orderStmt->execute();
         $order_id = $orderStmt->insert_id;
 
-        // 2️⃣ Insert order items and remove from inventory
-        $itemStmt = $conn->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
+        // Delete products from inventory
         $deleteInventoryStmt = $conn->prepare("DELETE FROM inventory WHERE id = ?");
-
         foreach ($selectedItems as $item) {
-            $itemStmt->bind_param("iiid", $order_id, $item['product_id'], $item['quantity'], $item['price']);
-            $itemStmt->execute();
-
-            // Delete product from inventory (since only 1 available)
             $deleteInventoryStmt->bind_param("i", $item['product_id']);
             $deleteInventoryStmt->execute();
         }
 
-        // 3️⃣ Remove items from cart
+        // Remove items from cart
         $deleteCartStmt = $conn->prepare("DELETE FROM cart WHERE id IN ($placeholders) AND user_id=?");
         $deleteCartStmt->bind_param($types . 'i', ...$params);
         $deleteCartStmt->execute();
 
-        $conn->commit(); // ✅ All good — commit transaction
-
+        $conn->commit();
         $_SESSION['order_success'] = "✅ Your order has been placed successfully!";
         header("Location: order_success.php");
         exit();
 
     } catch (Exception $e) {
-        $conn->rollback(); // ❌ Something went wrong — undo everything
+        $conn->rollback();
         $_SESSION['order_error'] = "⚠️ Checkout failed: " . $e->getMessage();
         header("Location: userDashboard.php");
         exit();
@@ -93,6 +102,13 @@ if (isset($_POST['confirm_order'])) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Review Checkout</title>
 <link rel="stylesheet" href="user.css">
+<style>
+    table.data-table { width:100%; border-collapse: collapse; }
+    table.data-table th, table.data-table td { border:1px solid #ccc; padding:8px; text-align:left; }
+    img.product-thumb { width:50px; height:50px; object-fit:cover; margin-right:5px; }
+    .btn { padding:8px 16px; margin-right:10px; background:#28a745; color:#fff; border:none; cursor:pointer; border-radius:4px; }
+    .btn-secondary { background:#6c757d; }
+</style>
 </head>
 <body>
 <h1>Review Your Order</h1>
@@ -112,13 +128,13 @@ if (isset($_POST['confirm_order'])) {
             <?php foreach ($selectedItems as $item): ?>
             <tr>
                 <td>
-                    <img src="<?= htmlspecialchars($item['image']) ?>" style="width:50px;height:50px;object-fit:cover;">
+                    <img src="<?= htmlspecialchars($item['image']) ?>" alt="<?= htmlspecialchars($item['name']) ?>" class="product-thumb">
                     <?= htmlspecialchars($item['name']) ?>
                 </td>
                 <td><?= htmlspecialchars($item['size']) ?></td>
-                <td>₱<?= number_format($item['price'], 2) ?></td>
+                <td>₱<?= number_format($item['price'],2) ?></td>
                 <td><?= $item['quantity'] ?></td>
-                <td>₱<?= number_format($item['price'] * $item['quantity'], 2) ?></td>
+                <td>₱<?= number_format($item['price'] * $item['quantity'],2) ?></td>
             </tr>
             <input type="hidden" name="cart_ids[]" value="<?= $item['cart_id'] ?>">
             <?php endforeach; ?>
@@ -126,7 +142,7 @@ if (isset($_POST['confirm_order'])) {
         <tfoot>
             <tr>
                 <td colspan="4" style="text-align:right;"><strong>Grand Total:</strong></td>
-                <td><strong>₱<?= number_format($grandTotal, 2) ?></strong></td>
+                <td><strong>₱<?= number_format($grandTotal,2) ?></strong></td>
             </tr>
         </tfoot>
     </table>
@@ -134,7 +150,7 @@ if (isset($_POST['confirm_order'])) {
     <h3>Payment Method: Cash on Delivery</h3>
 
     <div style="margin-top:20px;">
-        <button type="submit" name="confirm_order" class="btn">Confirm Order</button>
+        <button type="submit" name="confirm_order" class="btn" onclick="return confirm('Are you sure you want to place this order?');">Confirm Order</button>
         <a href="userDashboard.php" class="btn btn-secondary">Cancel</a>
     </div>
 </form>
