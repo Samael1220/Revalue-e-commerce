@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
 
 <!DOCTYPE html>
 <html>
-<?php include("templates/header.php"); ?>
+
 
 <h2>Register</h2>
 
@@ -87,5 +87,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
     <a href="index.php">← Back to Login</a>
 </div>
 
-<?php include("templates/footer.php"); ?>
+
 </html>

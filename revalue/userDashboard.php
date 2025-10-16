@@ -375,48 +375,48 @@ $query = "SELECT id, total_amount, order_date, status, payment_method FROM order
 $result = mysqli_query($conn, $query);
 ?>
 
-<div class="p-6">
-    <h2 class="text-2xl font-semibold mb-4">My Orders</h2>
-    <p class="text-gray-600 mb-6">Track and manage all your orders in one place.</p>
+<div class="orders-container">
+  <h2>My Orders</h2>
+  <p>Track and manage all your orders in one place.</p>
 
-    <div class="bg-white rounded-2xl shadow-md overflow-hidden">
-        <table class="min-w-full text-left border-collapse">
-            <thead class="bg-gray-100 text-gray-700">
-                <tr>
-                    <th class="py-3 px-5">Order ID</th>
-                    <th class="py-3 px-5">Total Amount (₱)</th>
-                    <th class="py-3 px-5">Order Date</th>
-                    <th class="py-3 px-5">Status</th>
-                    <th class="py-3 px-5">Payment Method</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y">
-                <?php if (mysqli_num_rows($result) > 0): ?>
-                    <?php while ($row = mysqli_fetch_assoc($result)): ?>
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="py-3 px-5"><?php echo htmlspecialchars($row['id']); ?></td>
-                            <td class="py-3 px-5">₱<?php echo number_format($row['total_amount'], 2); ?></td>
-                            <td class="py-3 px-5"><?php echo htmlspecialchars($row['order_date']); ?></td>
-                            <td class="py-3 px-5">
-                                <span class="px-2 py-1 rounded-full text-sm 
-                                    <?php echo ($row['status'] === 'Pending') ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'; ?>">
-                                    <?php echo htmlspecialchars($row['status']); ?>
-                                </span>
-                            </td>
-                            <td class="py-3 px-5"><?php echo htmlspecialchars($row['payment_method']); ?></td>
-                        </tr>
-                    <?php endwhile; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="5" class="text-center text-gray-500 py-6">
-                            No orders found. Orders will be loaded from the database.
-                        </td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
-    </div>
+  <div class="orders-table-wrapper">
+    <table class="orders-table">
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Total Amount (₱)</th>
+          <th>Order Date</th>
+          <th>Status</th>
+          <th>Payment Method</th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php if (mysqli_num_rows($result) > 0): ?>
+          <?php while ($row = mysqli_fetch_assoc($result)): ?>
+            <tr>
+              <td><?php echo htmlspecialchars($row['id']); ?></td>
+              <td>₱<?php echo number_format($row['total_amount'], 2); ?></td>
+              <td><?php echo htmlspecialchars($row['order_date']); ?></td>
+              <td>
+                <span class="status-badge <?php echo ($row['status'] === 'Pending') ? 'pending' : 'completed'; ?>">
+                  <?php echo htmlspecialchars($row['status']); ?>
+                </span>
+              </td>
+              <td><?php echo htmlspecialchars($row['payment_method']); ?></td>
+            </tr>
+          <?php endwhile; ?>
+        <?php else: ?>
+          <tr>
+            <td colspan="5" class="no-orders">
+              No orders found. Orders will be loaded from the database.
+            </td>
+          </tr>
+        <?php endif; ?>
+      </tbody>
+    </table>
+  </div>
 </div>
+
 </section>
 
 
