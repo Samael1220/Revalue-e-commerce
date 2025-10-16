@@ -10,7 +10,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
     $confirm = $_POST['confirm-pass'];
 
     if ($password !== $confirm) {
-        $registerError = "❌ Passwords do not match!";
+        $_SESSION['registerError'] = "❌ Passwords do not match!";
+        header("Location: index.php");
+        exit;
     } else {
         // check if email already exists
         $check = $conn->prepare("SELECT * FROM users WHERE E_mail = ?");
@@ -19,7 +21,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
         $checkResult = $check->get_result();
 
         if ($checkResult->num_rows > 0) {
-            $registerError = "❌ This email is already registered!";
+            $_SESSION['registerError'] = "❌ This email is already registered!";
+            header("Location: index.php");
+            exit;
         } else {
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
@@ -38,7 +42,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
                 header("Location: index.php");
                 exit;
             } else {
-                $registerError = "❌ Error: " . $stmt->error;
+                $_SESSION['registerError'] = "❌ Error: " . $stmt->error;
+                header("Location: index.php");
+                exit;
             }
         }
     }
@@ -91,10 +97,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout'])) {
 }
 
 // Display messages
-$registerError = isset($registerError) ? $registerError : '';
+$registerError = isset($_SESSION['registerError']) ? $_SESSION['registerError'] : '';
 $loginError = isset($loginError) ? $loginError : '';
 $registerSuccess = isset($_SESSION['registerSuccess']) ? $_SESSION['registerSuccess'] : '';
 unset($_SESSION['registerSuccess']);
+unset($_SESSION['registerError']);
 
 
 // Base query
@@ -412,11 +419,55 @@ $result = $conn->query($sql);
           <a href="#" onclick="alert('Forgot password clicked!')">Forgot your password?</a>
           <div class="register-link">
             <span>New here? </span>
-            <a href="register.php">Create an account</a>
+            <a href="#" id="show-register-form">Create an account</a>
           </div>
         </div>
 
  </div>
+    </div>
+
+    <!-- Register Form Container -->
+    <div class="first-container" id="register-form-container" style="display: none;">
+      <div class="form-content">
+        <h1 class="h1-modal">Re-Value.PH</h1>
+        <h2 class="h2-modal">Create Account</h2>
+        <p class="p-modal">Please fill in your details to create an account</p>
+
+        <?php if (!empty($registerError)): ?>
+          <div class="alert-error"><?php echo htmlspecialchars($registerError); ?></div>
+        <?php endif; ?>
+
+        <?php if (!empty($registerSuccess)): ?>
+          <div class="alert-success"><?php echo htmlspecialchars($registerSuccess); ?></div>
+        <?php endif; ?>
+
+        <form class="auth-form" method="post" action="">
+          <div class="input-group">
+            <label class="input-label" for="full-name">Full Name</label>
+            <input type="text" id="full-name" name="full-name" placeholder="Enter your full name" required />
+          </div>
+          <div class="input-group">
+            <label class="input-label" for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="Enter your email" required />
+          </div>
+          <div class="input-group">
+            <label class="input-label" for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Create a password" required />
+          </div>
+          <div class="input-group">
+            <label class="input-label" for="confirm-pass">Confirm Password</label>
+            <input type="password" id="confirm-pass" name="confirm-pass" placeholder="Confirm your password" required />
+          </div>
+          <button class="btn-form" type="submit" name="register">Create Account</button>
+        </form>
+
+        <div class="forgot-password">
+          <div class="register-link">
+            <span>Already have an account? </span>
+            <a href="#" id="back-to-login">Sign in here</a>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="sec-container">
