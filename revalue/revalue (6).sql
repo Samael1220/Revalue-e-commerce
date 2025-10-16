@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 14, 2025 at 01:20 PM
+-- Generation Time: Oct 16, 2025 at 03:03 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -35,16 +35,6 @@ CREATE TABLE `cart` (
   `added_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `cart`
---
-
-INSERT INTO `cart` (`id`, `user_id`, `product_id`, `quantity`, `added_at`) VALUES
-(109, 1, 1, 1, '2025-10-14 10:54:10'),
-(110, 1, 5, 1, '2025-10-14 10:54:16'),
-(111, 1, 7, 1, '2025-10-14 10:54:21'),
-(112, 1, 11, 1, '2025-10-14 10:58:08');
-
 -- --------------------------------------------------------
 
 --
@@ -65,14 +55,7 @@ CREATE TABLE `inventory` (
 --
 
 INSERT INTO `inventory` (`id`, `name`, `image`, `category`, `size`, `price`) VALUES
-(1, 'tshirt ni brual', 'uploads/1759999379_1.jpg', 'vintage', 'M', 5000),
-(4, 'sando ni osit', 'uploads/1759999370_466827131_17991821561718176_4971187432800159467_n.jpg', 'modern', 'XXL', 500),
-(5, 'sumbrelo ni marvin', 'uploads/1759999348_466923890_17991822080718176_299731762076899406_n.jpg', 'vintage', 'M', 206),
-(7, 't shirt', 'uploads/1759999323_466859525_17991823883718176_7967796178441113811_n.jpg', 'jackets', 'S', 270),
-(8, 'adadad', 'uploads/1759999313_466730130_17991824051718176_724116604996009720_n.jpg', 'modern', 'M', 125),
-(11, 'puti', 'uploads/1760010296_2.jpg', 'jackets', 'M', 200),
-(12, '3 musketeers', 'uploads/1760010380_466964397_17991823886718176_1726109815671737410_n.jpg', 'vintage', 'L', 200),
-(14, 'pork and beans', 'uploads/1760010430_466736746_17991824162718176_7790907259396982803_n.jpg', 'modern', 'M', 200);
+(17, 'jacket', 'uploads/1760619572_466736746_17991824162718176_7790907259396982803_n.jpg', 'jackets', 'M', 150);
 
 -- --------------------------------------------------------
 
@@ -108,24 +91,36 @@ CREATE TABLE `orders` (
   `total_amount` decimal(10,2) NOT NULL,
   `order_date` timestamp NOT NULL DEFAULT current_timestamp(),
   `status` varchar(50) NOT NULL DEFAULT 'Pending',
-  `payment_method` varchar(50) NOT NULL DEFAULT 'Cash on Delivery'
+  `payment_method` varchar(50) NOT NULL DEFAULT 'Cash on Delivery',
+  `product_names` text NOT NULL,
+  `product_images` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `orders`
 --
 
-INSERT INTO `orders` (`id`, `user_id`, `total_amount`, `order_date`, `status`, `payment_method`) VALUES
-(1, 1, 248123.00, '2025-10-02 07:12:06', 'Pending', 'Cash on Delivery'),
-(2, 1, 248123.00, '2025-10-02 07:13:13', 'Pending', 'Cash on Delivery'),
-(3, 1, 120000.00, '2025-10-02 07:19:54', 'Pending', 'Cash on Delivery'),
-(4, 1, 123123.00, '2025-10-02 07:22:23', 'Pending', 'Cash on Delivery'),
-(5, 1, 120000.00, '2025-10-02 07:41:04', 'Pending', 'Cash on Delivery'),
-(6, 1, 270.00, '2025-10-02 12:23:30', 'Pending', 'Cash on Delivery'),
-(7, 1, 120000.00, '2025-10-03 04:46:53', 'Pending', 'Cash on Delivery'),
-(8, 1, 270.00, '2025-10-05 09:41:52', 'Pending', 'Cash on Delivery'),
-(9, 1, 500.00, '2025-10-07 10:38:09', 'Pending', 'Cash on Delivery'),
-(10, 1, 5831.00, '2025-10-09 11:42:50', 'Pending', 'Cash on Delivery');
+INSERT INTO `orders` (`id`, `user_id`, `total_amount`, `order_date`, `status`, `payment_method`, `product_names`, `product_images`) VALUES
+(1, 1, 248123.00, '2025-10-02 07:12:06', 'Completed', 'Cash on Delivery', '', ''),
+(2, 1, 248123.00, '2025-10-02 07:13:13', 'Completed', 'Cash on Delivery', '', ''),
+(3, 1, 120000.00, '2025-10-02 07:19:54', 'Completed', 'Cash on Delivery', '', ''),
+(4, 1, 123123.00, '2025-10-02 07:22:23', 'Completed', 'Cash on Delivery', '', ''),
+(5, 1, 120000.00, '2025-10-02 07:41:04', 'Completed', 'Cash on Delivery', '', ''),
+(6, 1, 270.00, '2025-10-02 12:23:30', 'Completed', 'Cash on Delivery', '', ''),
+(7, 1, 120000.00, '2025-10-03 04:46:53', 'Completed', 'Cash on Delivery', '', ''),
+(8, 1, 270.00, '2025-10-05 09:41:52', 'Completed', 'Cash on Delivery', '', ''),
+(9, 1, 500.00, '2025-10-07 10:38:09', 'Completed', 'Cash on Delivery', '', ''),
+(10, 1, 5831.00, '2025-10-09 11:42:50', 'Completed', 'Cash on Delivery', '', ''),
+(11, 1, 5206.00, '2025-10-16 12:07:06', 'Completed', 'Cash on Delivery', '', ''),
+(12, 1, 200.00, '2025-10-16 12:16:01', 'Completed', 'Cash on Delivery', '', ''),
+(13, 1, 270.00, '2025-10-16 12:27:21', 'Completed', 'Cash on Delivery', '', ''),
+(14, 1, 125.00, '2025-10-16 12:29:17', 'Completed', 'Cash on Delivery', '', ''),
+(15, 1, 200.00, '2025-10-16 12:31:28', 'Completed', 'Cash on Delivery', '', ''),
+(16, 1, 200.00, '2025-10-16 12:32:31', 'Completed', 'Cash on Delivery', '', ''),
+(17, 1, 123.00, '2025-10-16 12:40:41', 'Completed', 'Cash on Delivery', '', ''),
+(18, 1, 200.00, '2025-10-16 12:47:51', 'Completed', 'Cash on Delivery', '', ''),
+(19, 1, 500.00, '2025-10-16 12:50:50', 'Completed', 'Cash on Delivery', '[\"sando ni osit\"]', '[\"uploads\\/1759999370_466827131_17991821561718176_4971187432800159467_n.jpg\"]'),
+(20, 1, 200.00, '2025-10-16 13:00:10', 'Completed', 'Cash on Delivery', '[\"t shirt\"]', '[\"uploads\\/1760619591_1760618064_1760010246_466730130_17991824051718176_724116604996009720_n.jpg\"]');
 
 -- --------------------------------------------------------
 
@@ -137,32 +132,11 @@ CREATE TABLE `order_items` (
   `id` int(11) NOT NULL,
   `order_id` int(11) NOT NULL,
   `product_id` int(11) NOT NULL,
+  `product_name` varchar(255) DEFAULT NULL,
+  `product_image` varchar(255) DEFAULT NULL,
   `quantity` int(11) NOT NULL,
   `price` decimal(10,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `order_items`
---
-
-INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `quantity`, `price`) VALUES
-(1, 1, 1, 1, 5000.00),
-(2, 1, 4, 1, 123123.00),
-(3, 1, 5, 1, 120000.00),
-(4, 2, 1, 1, 5000.00),
-(5, 2, 4, 1, 123123.00),
-(6, 2, 5, 1, 120000.00),
-(7, 3, 5, 1, 0.00),
-(8, 4, 4, 1, 0.00),
-(9, 5, 5, 1, 0.00),
-(10, 6, 7, 1, 0.00),
-(11, 7, 5, 1, 0.00),
-(12, 8, 7, 1, 0.00),
-(13, 9, 4, 1, 0.00),
-(14, 10, 5, 1, 0.00),
-(15, 10, 8, 1, 0.00),
-(16, 10, 4, 1, 0.00),
-(17, 10, 1, 1, 0.00);
 
 -- --------------------------------------------------------
 
@@ -247,13 +221,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=113;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;
 
 --
 -- AUTO_INCREMENT for table `inventory`
 --
 ALTER TABLE `inventory`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `messages`
@@ -265,13 +239,13 @@ ALTER TABLE `messages`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `users`

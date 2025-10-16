@@ -15,6 +15,14 @@ document.addEventListener("DOMContentLoaded", function () {
     const authOverlayInit = document.getElementById("auth-overlay");
     if (authOverlayInit) {
         openModal();
+
+        // Check if there's a register error and show register form
+        const registerError = document.querySelector(
+            "#register-form-container .alert-error"
+        );
+        if (registerError) {
+            showRegisterForm();
+        }
     }
 
     // Prevent default jumps for '#' links to avoid layout shifts
@@ -166,6 +174,56 @@ function hideToast() {
         toast.className = "toast";
         toastProgress.style.animation = "none";
     }, 400);
+}
+
+// Function to show register form
+function showRegisterForm() {
+    console.log("=== showRegisterForm() called ===");
+    const loginContainer = document.querySelector(
+        ".first-container:not(#register-form-container)"
+    );
+    const registerContainer = document.getElementById(
+        "register-form-container"
+    );
+    const authOverlay = document.getElementById("auth-overlay");
+
+    if (loginContainer && registerContainer && authOverlay) {
+        console.log("Switching to register form");
+        loginContainer.style.display = "none";
+        registerContainer.style.display = "block";
+        authOverlay.classList.add("register-active");
+    } else {
+        console.error("Could not find form containers:", {
+            loginContainer,
+            registerContainer,
+            authOverlay,
+        });
+    }
+}
+
+// Function to show login form
+function showLoginForm() {
+    console.log("=== showLoginForm() called ===");
+    const loginContainer = document.querySelector(
+        ".first-container:not(#register-form-container)"
+    );
+    const registerContainer = document.getElementById(
+        "register-form-container"
+    );
+    const authOverlay = document.getElementById("auth-overlay");
+
+    if (loginContainer && registerContainer && authOverlay) {
+        console.log("Switching to login form");
+        registerContainer.style.display = "none";
+        loginContainer.style.display = "block";
+        authOverlay.classList.remove("register-active");
+    } else {
+        console.error("Could not find form containers:", {
+            loginContainer,
+            registerContainer,
+            authOverlay,
+        });
+    }
 }
 
 // Filter form submission with scroll preservation
