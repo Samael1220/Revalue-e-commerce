@@ -101,20 +101,25 @@ if (isset($_POST['confirm_order'])) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Review Checkout</title>
-<link rel="stylesheet" href="user.css">
-<style>
-    table.data-table { width:100%; border-collapse: collapse; }
-    table.data-table th, table.data-table td { border:1px solid #ccc; padding:8px; text-align:left; }
-    img.product-thumb { width:50px; height:50px; object-fit:cover; margin-right:5px; }
-    .btn { padding:8px 16px; margin-right:10px; background:#28a745; color:#fff; border:none; cursor:pointer; border-radius:4px; }
-    .btn-secondary { background:#6c757d; }
-</style>
+
+<link rel="stylesheet" href="checkout.css">
+
 </head>
 <body>
-<h1>Review Your Order</h1>
+<div class="review-container">
+  <div class="review-card">
+    <div class="review-header">
+      <div>
+        <h1>Review Your Order</h1>
+        <div class="review-subtitle">Please confirm your items and total before placing the order.</div>
+      </div>
+      <span class="review-badge">Cash on Delivery</span>
+    </div>
 
 <form method="POST" action="">
-    <table class="data-table">
+    <div class="review-table-wrap">
+      <div class="table-container">
+        <table class="data-table">
         <thead>
             <tr>
                 <th>Product</th>
@@ -128,8 +133,12 @@ if (isset($_POST['confirm_order'])) {
             <?php foreach ($selectedItems as $item): ?>
             <tr>
                 <td>
+                  <div class="product-cell">
                     <img src="<?= htmlspecialchars($item['image']) ?>" alt="<?= htmlspecialchars($item['name']) ?>" class="product-thumb">
-                    <?= htmlspecialchars($item['name']) ?>
+                    <div>
+                      <div style="font-weight:600; color:#0f172a;"><?= htmlspecialchars($item['name']) ?></div>
+                    </div>
+                  </div>
                 </td>
                 <td><?= htmlspecialchars($item['size']) ?></td>
                 <td>₱<?= number_format($item['price'],2) ?></td>
@@ -139,20 +148,23 @@ if (isset($_POST['confirm_order'])) {
             <input type="hidden" name="cart_ids[]" value="<?= $item['cart_id'] ?>">
             <?php endforeach; ?>
         </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="4" style="text-align:right;"><strong>Grand Total:</strong></td>
-                <td><strong>₱<?= number_format($grandTotal,2) ?></strong></td>
-            </tr>
-        </tfoot>
-    </table>
+        </table>
+      </div>
+    </div>
 
-    <h3>Payment Method: Cash on Delivery</h3>
+    <div class="review-footer">
+      <div class="review-total">
+        <span class="label">Grand Total:</span>
+        <span>₱<?= number_format($grandTotal,2) ?></span>
+      </div>
 
-    <div style="margin-top:20px;">
-        <button type="submit" name="confirm_order" class="btn" onclick="return confirm('Are you sure you want to place this order?');">Confirm Order</button>
-        <a href="userDashboard.php" class="btn btn-secondary">Cancel</a>
+      <div class="review-actions">
+          <button type="submit" name="confirm_order" class="btn btn-primary" onclick="return confirm('Are you sure you want to place this order?');">Confirm Order</button>
+          <a href="userDashboard.php" class="btn btn-secondary">Cancel</a>
+      </div>
     </div>
 </form>
+  </div>
+</div>
 </body>
 </html>

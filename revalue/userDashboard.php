@@ -434,9 +434,9 @@ $result = mysqli_query($conn, $query);
           <tr>
             <th>Select</th>
             <th>Product</th>
-            <th>Size</th>
+            <th>Name</th>
             <th>Price</th>
-            <th>Qty</th>
+            <th>Size</th>
             <th>Total</th>
             <th>Action</th>
           </tr>
@@ -455,28 +455,28 @@ $result = mysqli_query($conn, $query);
           $cartResult = $cartQuery->get_result();
 
           $grandTotal = 0;
-          if ($cartResult->num_rows > 0) {
-              while ($item = $cartResult->fetch_assoc()) {
-                  $total = $item['price'] * $item['quantity'];
-                  $grandTotal += $total;
-                  echo "<tr>
-                          <td><input type='checkbox' name='cart_ids[]' value='{$item['cart_id']}'></td>
-                          <td>
-                            <img src='".htmlspecialchars($item['image'])."' alt='".htmlspecialchars($item['name'])."' style='width:60px; height:60px; object-fit:cover; border-radius:5px;'><br>"
-                            .htmlspecialchars($item['name'])."
-                          </td>
-                          <td>".htmlspecialchars($item['size'])."</td>
-                          <td>₱".number_format($item['price'],2)."</td>
-                          <td>{$item['quantity']}</td>
-                          <td>₱".number_format($total,2)."</td>
-                          <td>
-                            <a href='remove_cart.php?id={$item['cart_id']}' class='btn-delete'>Delete</a>
-                          </td>
-                        </tr>";
-              }
+         if ($cartResult->num_rows > 0) {
+    while ($item = $cartResult->fetch_assoc()) {
+        $total = $item['price'] * $item['quantity'];
+        $grandTotal += $total;
+        echo "<tr>
+                <td><input type='checkbox' name='cart_ids[]' value='{$item['cart_id']}'></td>
+                <td class='product-cell'>
+                  <img src='".htmlspecialchars($item['image'])."' alt='".htmlspecialchars($item['name'])."' style='width:60px; height:60px; object-fit:cover; border-radius:5px; margin-left:0;'>
+                </td>
+                <td>{$item['name']}</td>
+                <td>₱".number_format($item['price'],2)."</td>
+                <td>".htmlspecialchars($item['size'])."</td>
+                <td>₱".number_format($total,2)."</td>
+                <td>
+                  <a href='remove_cart.php?id={$item['cart_id']}' class='btn-delete'>Delete</a>
+                </td>
+              </tr>";
+    }
+
               echo "<tr>
-                      <td colspan='5' style='text-align:right;'><strong>Grand Total:</strong></td>
-                      <td colspan='2'><strong>₱".number_format($grandTotal,2)."</strong></td>
+                      <td colspan='5' style='text-align:right;'>Grand Total:</td>
+                      <td colspan='2'>₱".number_format($grandTotal,2)."</td>
                     </tr>";
           } else {
               echo "<tr><td colspan='7'>Your cart is empty.</td></tr>";
@@ -488,7 +488,7 @@ $result = mysqli_query($conn, $query);
 
     <?php if ($cartResult->num_rows > 0): ?>
       <div style="margin-top:20px; text-align:right;">
-        <button type="submit" name="review_checkout" class="btn">Proceed to Payment</button>
+        <button type="submit" name="review_checkout" class="btn btn-pay">Proceed to Payment</button>
       </div>
     <?php endif; ?>
 </form>
