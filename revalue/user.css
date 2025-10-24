@@ -424,6 +424,7 @@ body {
 }
 
 /* Tables */
+
 .table-container {
     background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(12px);
@@ -433,12 +434,13 @@ body {
     overflow: hidden;
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-top: 1rem;
 }
 
 .data-table {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
+    border-collapse: collapse;
+    text-align: left;
 }
 
 .data-table thead {
@@ -446,49 +448,77 @@ body {
     border-bottom: 2px solid var(--gray-200);
 }
 
+.data-table th,
+.data-table td {
+    padding: 16px 20px;
+    font-size: 0.95rem;
+}
+
 .data-table th {
-    padding: 18px 22px;
-    text-align: left;
     font-weight: 600;
     color: var(--gray-700);
-    font-size: var(--font-size-sm);
     text-transform: uppercase;
     letter-spacing: 0.6px;
-    background: var(--gray-50);
 }
 
 .data-table td {
     vertical-align: middle;
     color: var(--gray-900);
-    font-size: 0.95rem;
     border-bottom: 1px solid var(--gray-100);
-    transition: background-color 0.25s ease, transform 0.2s ease;
+    transition: background 0.25s ease;
 }
 
-.data-table tbody tr:hover td {
-    background: rgba(249, 250, 251, 0.8);
+.data-table tbody tr:hover {
+    background: rgba(68, 148, 239, 0.05);
 }
 
-.data-table tbody tr:last-child td {
-    border-bottom: none;
+/* Alternate row color for readability */
+.data-table tbody tr:nth-child(even) {
+    background: rgba(0, 0, 0, 0.015);
 }
 
-/* Product cell */
+/* Align “Select” and “Qty” center */
+.data-table th:first-child,
+.data-table td:first-child,
+.data-table th:nth-child(5),
+.data-table td:nth-child(5),
+.data-table th:last-child,
+.data-table td:last-child {
+    text-align: center;
+}
+
+/* Product image cell */
 .data-table td img {
     display: block;
-    margin-bottom: 6px;
+    margin: 0 auto 8px auto;
     border-radius: 8px;
     box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+    height: 80px !important;
+    width: 80px !important;
+    object-fit: cover;
     transition: transform 0.3s ease;
-    height: 100px !important;
-    width: 100px !important;
 }
 
 .data-table td img:hover {
     transform: scale(1.05);
 }
 
-/* Delete button styling */
+/* Empty cart message */
+.data-table td[colspan="7"] {
+    text-align: center;
+    padding: 30px;
+    color: var(--gray-600);
+    font-style: italic;
+}
+
+/* Grand total row */
+.data-table tr:last-child td {
+    border-top: 2px solid var(--gray-200);
+    font-weight: 600;
+    background: rgba(68, 148, 239, 0.05);
+}
+
+/* Buttons */
 .btn-delete {
     display: inline-block;
     padding: 6px 14px;
@@ -506,6 +536,57 @@ body {
     background: #ef4444;
     color: white;
     transform: translateY(-2px);
+}
+
+/* Payment button */
+.btn-pay {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 10px;
+    color: white;
+    background: #446cef;
+    border: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.25s ease;
+}
+
+.btn-pay:hover {
+    background: #3450d3;
+    transform: translateY(-2px);
+}
+
+/* Product cell alignment fix */
+.product-cell {
+    text-align: center;
+}
+
+.product-cell img {
+    display: inline-block;
+    width: 80px !important;
+    height: 80px !important;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease;
+}
+
+.product-cell img:hover {
+    transform: scale(1.05);
+}
+
+/* Responsive fix */
+@media (max-width: 768px) {
+    .data-table th,
+    .data-table td {
+        padding: 12px;
+        font-size: 0.85rem;
+    }
+
+    .data-table td img {
+        height: 60px !important;
+        width: 60px !important;
+    }
 }
 
 /* Checkout button area */
@@ -984,55 +1065,16 @@ body {
 }
 
 /* Tables */
-.table-container {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid var(--gray-100);
-    border-radius: var(--radius-lg);
-    overflow-x: auto;
-    overflow-y: visible;
-    box-shadow: var(--shadow-sm);
-    width: 100%;
-}
 
-.data-table {
-    width: 100%;
-    min-width: 600px;
-    border-collapse: collapse;
-}
-
-.data-table thead {
-    background: var(--gray-50);
-    border-bottom: 2px solid var(--gray-200);
-}
-
-.data-table th {
-    padding: var(--spacing-md);
-    text-align: left;
+/* Grand total row styling */
+.grand-total-row {
+    background-color: var(--gray-50);
     font-weight: 600;
-    color: var(--gray-700);
-    font-size: var(--font-size-sm);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
-.data-table td {
-    padding: var(--spacing-md);
-    border-bottom: 1px solid var(--gray-100);
-    color: var(--gray-900);
-}
-
-.data-table tbody tr {
-    transition: all var(--transition-fast);
-}
-
-.data-table tbody tr:hover {
-    background: var(--gray-50);
-}
-
-.data-table tbody tr:last-child td {
-    border-bottom: none;
+.grand-total-row td {
+    padding-top: 16px;
+    padding-bottom: 16px;
 }
 
 /* Status Badges */
@@ -1213,9 +1255,7 @@ body {
 
 .orders-container {
     font-family: "Poppins", sans-serif;
-
     color: #1e293b;
-    min-height: 100vh;
 }
 
 .orders-container h2 {
