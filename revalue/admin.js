@@ -195,6 +195,65 @@ setTimeout(() => {
   // });
 }, 2000);
 
+// Toast notification system
+function showToast(message, type = "success") {
+  const toastContainer = document.getElementById("toast-container");
+  if (!toastContainer) return;
+
+  const toast = document.createElement("div");
+  toast.className = `toast toast-${type}`;
+
+  const icon =
+    type === "success"
+      ? "✅"
+      : type === "error"
+      ? "❌"
+      : type === "warning"
+      ? "⚠️"
+      : "ℹ️";
+  toast.innerHTML = `
+    <div class="toast-content">
+      <span class="toast-icon">${icon}</span>
+      <span class="toast-message">${message}</span>
+    </div>
+    <button class="toast-close" onclick="closeToast(this)">×</button>
+  `;
+
+  toastContainer.appendChild(toast);
+
+  // Auto remove after 5 seconds
+  setTimeout(() => {
+    if (toast.parentNode) {
+      toast.classList.add("toast-hide");
+      setTimeout(() => {
+        if (toast.parentNode) {
+          toastContainer.removeChild(toast);
+        }
+      }, 300);
+    }
+  }, 5000);
+}
+
+function closeToast(button) {
+  const toast = button.parentNode;
+  toast.classList.add("toast-hide");
+  setTimeout(() => {
+    if (toast.parentNode) {
+      document.getElementById("toast-container").removeChild(toast);
+    }
+  }, 300);
+}
+
+// Show success toast on page load if success parameter is present
+document.addEventListener("DOMContentLoaded", function () {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get("success") === "1") {
+    setTimeout(() => {
+      showToast("Product added successfully!", "success");
+    }, 1000);
+  }
+});
+
 // Export functions for PHP integration
 window.dashboardAPI = {
   updateValues: updateDashboardValues,
@@ -203,4 +262,5 @@ window.dashboardAPI = {
     const navItem = document.querySelector(`[data-section="${sectionName}"]`);
     if (navItem) navItem.click();
   },
+  showToast: showToast,
 };

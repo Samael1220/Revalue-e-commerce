@@ -10,28 +10,40 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Check if cart items are selected
-if (!isset($_POST['cart_ids']) || empty($_POST['cart_ids'])) {
-    header("Location: userDashboard.php");
-    exit();
+// Check if cart items are selected via POST or fetch all cart items via GET
+if (isset($_POST['cart_ids']) && !empty($_POST['cart_ids'])) {
+    // Handle POST request (from userDashboard.php)
+    $cart_ids = $_POST['cart_ids'];
+    $placeholders = implode(',', array_fill(0, count($cart_ids), '?'));
+    $types = str_repeat('i', count($cart_ids));
+    
+    // Fetch selected cart items with their details
+    $sql = "SELECT c.id AS cart_id, i.id AS product_id, i.name, i.size, i.price, i.image, c.quantity
+            FROM cart c
+            JOIN inventory i ON c.product_id = i.id
+            WHERE c.id IN ($placeholders) AND c.user_id=?";
+    $stmt = $conn->prepare($sql);
+    $params = array_merge($cart_ids, [$user_id]);
+    $stmt->bind_param($types . 'i', ...$params);
+    $stmt->execute();
+    $result = $stmt->get_result();
+} else {
+    // Handle GET request (from cart modal) - fetch all cart items
+    $sql = "SELECT c.id AS cart_id, i.id AS product_id, i.name, i.size, i.price, i.image, c.quantity
+            FROM cart c
+            JOIN inventory i ON c.product_id = i.id
+            WHERE c.user_id=?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    // If no items in cart, redirect to userDashboard
+    if ($result->num_rows === 0) {
+        header("Location: userDashboard.php");
+        exit();
+    }
 }
-
-$cart_ids = $_POST['cart_ids'];
-
-// Prepare placeholders for SQL IN (...)
-$placeholders = implode(',', array_fill(0, count($cart_ids), '?'));
-$types = str_repeat('i', count($cart_ids));
-
-// Fetch selected cart items with their details
-$sql = "SELECT c.id AS cart_id, i.id AS product_id, i.name, i.size, i.price, i.image, c.quantity
-        FROM cart c
-        JOIN inventory i ON c.product_id = i.id
-        WHERE c.id IN ($placeholders) AND c.user_id=?";
-$stmt = $conn->prepare($sql);
-$params = array_merge($cart_ids, [$user_id]);
-$stmt->bind_param($types . 'i', ...$params);
-$stmt->execute();
-$result = $stmt->get_result();
 
 $selectedItems = [];
 $grandTotal = 0;
@@ -76,10 +88,18 @@ if (isset($_POST['confirm_order'])) {
             $deleteInventoryStmt->execute();
         }
 
-        // Remove items from cart
-        $deleteCartStmt = $conn->prepare("DELETE FROM cart WHERE id IN ($placeholders) AND user_id=?");
-        $deleteCartStmt->bind_param($types . 'i', ...$params);
-        $deleteCartStmt->execute();
+        // Remove items from cart - handle both POST and GET cases
+        if (isset($_POST['cart_ids']) && !empty($_POST['cart_ids'])) {
+            // Remove selected items (from userDashboard)
+            $deleteCartStmt = $conn->prepare("DELETE FROM cart WHERE id IN ($placeholders) AND user_id=?");
+            $deleteCartStmt->bind_param($types . 'i', ...$params);
+            $deleteCartStmt->execute();
+        } else {
+            // Remove all items (from cart modal)
+            $deleteCartStmt = $conn->prepare("DELETE FROM cart WHERE user_id=?");
+            $deleteCartStmt->bind_param("i", $user_id);
+            $deleteCartStmt->execute();
+        }
 
         $conn->commit();
         $_SESSION['order_success'] = "✅ Your order has been placed successfully!";

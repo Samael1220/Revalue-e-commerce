@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
             $stmt->bind_param("ssssssss", $fullname, $email, $hashedPassword, $fname, $lname, $number, $address, $country);
 
             if ($stmt->execute()) {
-                $_SESSION['registerSuccess'] = "✅ Registered successfully! You can now log in.";
+                $_SESSION['registerSuccess'] = "✅ Registered successfully!";
                 header("Location: index.php");
                 exit;
             } else {
@@ -82,10 +82,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
                 exit;
             }
         } else {
-            $loginError = "❌ Wrong password!";
+           $loginError = "Incorrect password. Please try again.";
+
         }
     } else {
-        $loginError = "❌ User not found!";
+  $loginError = "User not found!";
+
+
     }
 }
 
@@ -186,9 +189,9 @@ $result = $conn->query($sql);
 
     <div class="right">
      
-      <button class="btn btn-outline hv"><i data-lucide="shopping-cart"></i></button>
+      <button class="btn btn-outline hv" onclick="openCartModal()"><i data-lucide="shopping-cart">Cart</i></button>
       <?php if(isset($_SESSION['user_id'])): ?>
-     <button class="btn btn-outline lcd hv" ><a href="userDashboard.php"><i data-lucide="user"></i> </a></button>
+     <button class="btn btn-outline lcd hv" ><a href="userDashboard.php"><i data-lucide="user">User</i> </a></button>
       <form method="POST" style="display:inline;">
         <button class="btn btn-outline hv" type="submit" name="logout">Log out</button>
       </form>
@@ -395,13 +398,6 @@ $result = $conn->query($sql);
         <h2 class="h2-modal">Welcome Back!</h2>
         <p class="p-modal">Please enter your login details below</p>
 
-        <?php if (!empty($loginError)): ?>
-          <div class="alert-error"><?php echo htmlspecialchars($loginError); ?></div>
-        <?php endif; ?>
-
-        <?php if (!empty($registerSuccess)): ?>
-          <div class="alert-success"><?php echo htmlspecialchars($registerSuccess); ?></div>
-        <?php endif; ?>
 
         <form  class="auth-form" method="post" action="">
           <div class="input-group">
@@ -416,7 +412,7 @@ $result = $conn->query($sql);
         </form>
 
         <div class="forgot-password">
-          <a href="#" onclick="alert('Forgot password clicked!')">Forgot your password?</a>
+          <a href="forgotPass.php" >Forgot your password?</a>
           <div class="register-link">
             <span>New here? </span>
             <a href="#" id="show-register-form">Create an account</a>
@@ -433,13 +429,6 @@ $result = $conn->query($sql);
         <h2 class="h2-modal">Create Account</h2>
         <p class="p-modal">Please fill in your details to create an account</p>
 
-        <?php if (!empty($registerError)): ?>
-          <div class="alert-error"><?php echo htmlspecialchars($registerError); ?></div>
-        <?php endif; ?>
-
-        <?php if (!empty($registerSuccess)): ?>
-          <div class="alert-success"><?php echo htmlspecialchars($registerSuccess); ?></div>
-        <?php endif; ?>
 
         <form class="auth-form" method="post" action="">
           <div class="input-group">
@@ -481,6 +470,39 @@ $result = $conn->query($sql);
 </div>
 
 <?php endif; ?>
+
+<!-- Cart Modal -->
+<?php if(isset($_SESSION['user_id'])): ?>
+<div class="modal-overlay" id="cart-overlay" style="display: none;">
+  <div class="cart-modal">
+    <div class="cart-header">
+      <h2>Shopping Cart</h2>
+      <button class="close-cart-btn" onclick="closeCartModal()">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    
+    <div class="cart-content">
+      <div class="cart-items" id="cart-items">
+        <!-- Cart items will be loaded here -->
+        <div class="cart-loading">
+          <p>Loading cart items...</p>
+        </div>
+      </div>
+      
+      <div class="cart-summary">
+        <div class="cart-total">
+          <span>Total: ₱<span id="cart-total">0</span></span>
+        </div>
+        <button class="btn-checkout" onclick="proceedToCheckout()">
+          Proceed to Checkout
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<?php endif; ?>
+
 </main>
 
 <div id="toast-container"></div>
@@ -497,6 +519,53 @@ $result = $conn->query($sql);
 </div>
 
 <script>
+  // Toast notification system
+  function showToast(type, title, message) {
+    const toast = document.getElementById('toast');
+    const toastIcon = toast.querySelector('.toast-icon');
+    const toastTitle = toast.querySelector('.toast-title');
+    const toastMessage = toast.querySelector('.toast-message');
+    
+    // Set toast content
+    toastTitle.textContent = title;
+    toastMessage.textContent = message;
+    
+    // Set toast type and icon
+    toast.className = `toast ${type}`;
+    if (type === 'success') {
+      toastIcon.textContent = '✓';
+    } else if (type === 'error') {
+      toastIcon.textContent = '✕';
+    } else if (type === 'info') {
+      toastIcon.textContent = 'ℹ';
+    } else if (type === 'warning') {
+      toastIcon.textContent = '⚠';
+    }
+    
+    // Show toast
+    toast.style.display = 'block';
+    setTimeout(() => toast.classList.add('show'), 10);
+    
+    // Auto hide after 4 seconds
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.style.display = 'none', 350);
+    }, 4000);
+  }
+
+  // Show toasts for PHP messages
+  <?php if (!empty($loginError)): ?>
+    showToast('error', 'Login Failed', '<?= addslashes($loginError) ?>');
+  <?php endif; ?>
+
+  <?php if (!empty($registerError)): ?>
+    showToast('error', 'Registration Failed', '<?= addslashes($registerError) ?>');
+  <?php endif; ?>
+
+  <?php if (!empty($registerSuccess)): ?>
+    showToast('success', 'Registration Successful', '<?= addslashes($registerSuccess) ?>');
+  <?php endif; ?>
+
   // Save scroll position before reload
   window.addEventListener("beforeunload", () => {
     localStorage.setItem("scrollPosition", window.scrollY);
