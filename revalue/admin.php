@@ -121,6 +121,8 @@ $conn->close();
 
         <!-- Main Content -->
         <div class="main-content">
+            <!-- Toast Container -->
+            <div id="toast-container" class="toast-container"></div>
             <!-- Header -->
             <div class="header">
                 <div class="welcome-section">
@@ -463,7 +465,6 @@ document.addEventListener("DOMContentLoaded", function() {
             </div>
 
             <!-- Products Section -->
-<!-- Products Section -->
 <div class="content-section" id="products">
   <h2>Products</h2>
 
@@ -474,27 +475,27 @@ document.addEventListener("DOMContentLoaded", function() {
   $result = $conn->query("SELECT * FROM inventory ORDER BY id DESC");
 
   if ($result->num_rows > 0) {
-      echo "<div style='display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;'>";
+      echo "<div class='products-grid'>";
 
       while ($row = $result->fetch_assoc()) {
-          echo "<div style='border:1px solid #ccc; padding:10px; text-align:center; border-radius:10px;'>";
+          echo "<div class='product-card'>";
 
           // Image
-          echo "<img src='" . $row['image'] . "' alt='" . htmlspecialchars($row['name']) . "' style='width:150px; height:auto;'><br>";
+          echo "<img src='" . $row['image'] . "' alt='" . htmlspecialchars($row['name']) . "' class='product-image'>";
 
           // Product Info
-          echo "<strong>" . htmlspecialchars($row['name']) . "</strong><br>";
-          echo "Category: " . htmlspecialchars($row['category']) . "<br>";
-          echo "Size: " . htmlspecialchars($row['size']) . "<br>";
-          echo "Price: ₱" . number_format($row['price']) . "<br><br>";
+          echo "<div class='product-info'>";
+          echo "<div class='product-name'>" . htmlspecialchars($row['name']) . "</div>";
+          echo "<div class='product-category'>" . htmlspecialchars($row['category']) . "</div>";
+          echo "<div class='product-size'>Size: " . htmlspecialchars($row['size']) . "</div>";
+          echo "<div class='product-price'>₱" . number_format($row['price']) . "</div>";
+          echo "</div>";
 
           // Action Buttons
-          echo "<a href='editProduct.php?id=" . $row['id'] . "'>
-                  <button style='margin:5px; padding:5px 10px;'>✏ Edit</button>
-                </a>";
-          echo "<a href='deleteProduct.php?id=" . $row['id'] . "' onclick=\"return confirm('Are you sure you want to delete this product?');\">
-                  <button style='margin:5px; padding:5px 10px; background:red; color:white;'>🗑 Delete</button>
-                </a>";
+          echo "<div class='product-actions'>";
+          echo "<a href='editProduct.php?id=" . $row['id'] . "' class='btn btn-edit'>✏ Edit</a>";
+          echo "<a href='deleteProduct.php?id=" . $row['id'] . "' onclick=\"return confirm('Are you sure you want to delete this product?');\" class='btn btn-delete'>🗑 Delete</a>";
+          echo "</div>";
 
           echo "</div>";
       }
@@ -507,10 +508,9 @@ document.addEventListener("DOMContentLoaded", function() {
   $conn->close();
   ?>
 
-  <br>
   <!-- Add Product Button -->
   <a href="addProduct.php">
-    <button style="margin-top:20px; padding:10px 20px; font-size:16px;">➕ Add Product</button>
+    <button class="add-product-btn">➕ Add Product</button>
   </a>
 </div>
 

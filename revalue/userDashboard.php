@@ -523,10 +523,7 @@ $result = mysqli_query($conn, $query);
         <form method="POST" action="">
           <button type="submit" name="clear_main" class="btn btn-danger">Remove</button>
         </form>
-        <form method="GET" action="editAddress.php">
-          <input type="hidden" name="type" value="main">
-          <button type="submit" class="btn btn-secondary">Edit</button>
-        </form>
+        <button type="button" class="btn btn-secondary" onclick="openEditAddressModal('main')">Edit</button>
       </div>
     </div>
 
@@ -542,10 +539,7 @@ $result = mysqli_query($conn, $query);
         <form method="POST" action="">
           <button type="submit" name="clear_home" class="btn btn-danger">Remove</button>
         </form>
-        <form method="GET" action="editAddress.php">
-          <input type="hidden" name="type" value="home">
-          <button type="submit" class="btn btn-secondary">Edit</button>
-        </form>
+        <button type="button" class="btn btn-secondary" onclick="openEditAddressModal('home')">Edit</button>
       </div>
     </div>
 
@@ -561,10 +555,7 @@ $result = mysqli_query($conn, $query);
         <form method="POST" action="">
           <button type="submit" name="clear_work" class="btn btn-danger">Remove</button>
         </form>
-        <form method="GET" action="editAddress.php">
-          <input type="hidden" name="type" value="work">
-          <button type="submit" class="btn btn-secondary">Edit</button>
-        </form>
+        <button type="button" class="btn btn-secondary" onclick="openEditAddressModal('work')">Edit</button>
       </div>
     </div>
 
@@ -706,5 +697,141 @@ $result = mysqli_query($conn, $query);
 
     <!-- Toast Notification Container -->
     <div id="toast" class="toast"></div>
+
+    <!-- Address Edit Modal -->
+    <div id="addressModal" class="modal-overlay" style="display: none;">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 id="modalTitle">Edit Address</h2>
+          <button class="modal-close" onclick="closeEditAddressModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="addressForm">
+            <input type="hidden" id="addressType" name="address_type">
+            <div class="form-group">
+              <label for="addressInput">Address</label>
+              <textarea id="addressInput" name="new_address" rows="3" placeholder="Enter your address" required
+              style="resize:none"></textarea>
+            </div>
+            <div class="modal-actions">
+              <button type="button" class="btn btn-secondary" onclick="closeEditAddressModal()">Cancel</button>
+              <button type="submit" class="btn btn-primary">Save Address</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <style>
+     
+    </style>
+
+    <script>
+      // Address Edit Modal Functions
+      function openEditAddressModal(type) {
+        const modal = document.getElementById('addressModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const addressType = document.getElementById('addressType');
+        const addressInput = document.getElementById('addressInput');
+        
+        // Set the address type
+        addressType.value = type;
+        
+        // Update modal title
+        const typeNames = {
+          'main': 'Main',
+          'home': 'Home', 
+          'work': 'Work'
+        };
+        modalTitle.textContent = `Edit ${typeNames[type]} Address`;
+        
+        // Fetch current address
+        fetch(`editAddress.php?get_address=1&type=${type}`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              addressInput.value = data.address;
+            } else {
+              console.error('Failed to fetch address:', data.message);
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching address:', error);
+          });
+        
+        // Show modal
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        
+        // Focus on input
+        setTimeout(() => addressInput.focus(), 100);
+      }
+
+      function closeEditAddressModal() {
+        const modal = document.getElementById('addressModal');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      // Handle form submission
+      document.getElementById('addressForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        formData.append('update_address', '1');
+        
+        // Show loading state
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Saving...';
+        submitBtn.disabled = true;
+        
+        fetch('editAddress.php', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Show success toast
+            showToast('Succesfully Updated', 'Address Updated', data.message);
+            
+            // Close modal
+            closeEditAddressModal();
+            
+            // Reload the page to show updated address
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          } else {
+            // Show error toast
+            showToast('error', 'Update Failed', data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showToast('error', 'Connection Error', 'Failed to update address. Please try again.');
+        })
+        .finally(() => {
+          // Reset button
+          submitBtn.textContent = originalText;
+          submitBtn.disabled = false;
+        });
+      });
+
+      // Close modal when clicking outside
+      document.getElementById('addressModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeEditAddressModal();
+        }
+      });
+
+      // Close modal with Escape key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          closeEditAddressModal();
+        }
+      });
+    </script>
   </body>
 </html>

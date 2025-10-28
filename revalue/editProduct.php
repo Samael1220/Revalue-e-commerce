@@ -54,44 +54,93 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Edit Product</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Product - Admin</title>
+    <link rel="stylesheet" href="styleForAdmin.css">
 </head>
 <body>
-    <h2>Edit Product</h2>
-    <form method="POST" enctype="multipart/form-data">
-        <label>Product Name:</label>
-        <input type="text" name="name" value="<?= htmlspecialchars($product['name']) ?>" required><br><br>
+    <div class="main-content">
+        <!-- Modern Edit Form -->
+        <div class="form-container">
+            <div class="form-header">
+                <h2>✏️ Edit Product</h2>
+                <p>Update the product details below</p>
+            </div>
+            
+            <form method="POST" enctype="multipart/form-data" class="product-form">
+                
+                <!-- Product Name -->
+                <div class="form-group">
+                    <label for="name">Product Name</label>
+                    <input type="text" name="name" id="name" value="<?= htmlspecialchars($product['name']) ?>" placeholder="Enter product name" required>
+                </div>
 
-        <label>Image:</label><br>
-        <img src="<?= $product['image'] ?>" width="100"><br>
-        <input type="file" name="image"><br><br>
+                <!-- Current Image Display -->
+                <div class="form-group">
+                    <label>Current Image</label>
+                    <div class="current-image">
+                        <img src="<?= $product['image'] ?>" alt="Current product image">
+                        <span class="image-label">Current Image</span>
+                    </div>
+                </div>
 
-        <label>Size:</label>
-        <select name="size" required>
-            <?php
-            $sizes = ["XS","S","M","L","XL","XXL"];
-            foreach ($sizes as $s) {
-                echo "<option value='$s' " . ($product['size'] == $s ? "selected" : "") . ">$s</option>";
-            }
-            ?>
-        </select><br><br>
+                <!-- New Image Upload -->
+                <div class="form-group">
+                    <label for="image">Update Image (Optional)</label>
+                    <div class="file-upload">
+                        <input type="file" name="image" id="image" accept="image/*">
+                        <label for="image" class="file-upload-label">
+                            <span class="upload-icon">📷</span>
+                            <span class="upload-text">Choose New Image</span>
+                        </label>
+                    </div>
+                </div>
 
-        <label>Category:</label>
-        <select name="category" required>
-            <?php
-            $categories = ["vintage","modern","jackets","coats","pants"];
-            foreach ($categories as $c) {
-                echo "<option value='$c' " . ($product['category'] == $c ? "selected" : "") . ">$c</option>";
-            }
-            ?>
-        </select><br><br>
+                <!-- Size and Category Row -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="size">Size</label>
+                        <select name="size" id="size" required>
+                            <?php
+                            $sizes = ["XS","S","M","L","XL","XXL"];
+                            foreach ($sizes as $s) {
+                                $selected = ($product['size'] == $s) ? "selected" : "";
+                                echo "<option value='$s' $selected>$s</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
 
-        <label>Price (₱):</label>
-        <input type="number" name="price" value="<?= $product['price'] ?>" required><br><br>
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <select name="category" id="category" required>
+                            <?php
+                            $categories = ["vintage","modern","jackets","coats","pants"];
+                            foreach ($categories as $c) {
+                                $selected = ($product['category'] == $c) ? "selected" : "";
+                                echo "<option value='$c' $selected>" . ucfirst($c) . "</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+                </div>
 
-        <button type="submit">Update Product</button>
-    </form>
+                <!-- Price -->
+                <div class="form-group">
+                    <label for="price">Price (₱)</label>
+                    <input type="number" name="price" id="price" value="<?= $product['price'] ?>" min="1" placeholder="Enter price" required>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">Update Product</button>
+                    <a href="admin.php#products" class="btn-cancel">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>
