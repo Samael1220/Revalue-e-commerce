@@ -9,67 +9,74 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
+header('Content-Type: application/json'); // Ensure JSON responses
 
-// Handle AJAX request for address update
+$valid_types = ['main', 'home', 'work'];
+$columns_map = [
+    'main' => 'address',
+    'home' => 'address2',
+    'work' => 'address3'
+];
+
+// ---------- HANDLE ADDRESS UPDATE ----------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_address'])) {
     $type = $_POST['address_type'] ?? '';
     $new_address = trim($_POST['new_address']);
 
-    // Validate the type parameter
-    $valid_types = ['main', 'home', 'work'];
     if (!in_array($type, $valid_types)) {
         echo json_encode(['success' => false, 'message' => 'Invalid address type.']);
         exit();
     }
 
-    // Map address type to database column
-    $column = match ($type) {
-        'main' => 'address',
-        'home' => 'address2',
-        'work' => 'address3',
-    };
+    $column = $columns_map[$type];
+    if ($new_address === '') $new_address = ' '; // Avoid NOT NULL errors
 
-    $stmt = $conn->prepare("UPDATE users SET $column=? WHERE id=?");
+    // Use prepared statement to update DB
+    $stmt = $conn->prepare("UPDATE users SET `$column`=? WHERE id=?");
     $stmt->bind_param("si", $new_address, $user_id);
-    
+
     if ($stmt->execute()) {
-        echo json_encode(['success' => true, 'message' => 'Address updated successfully!']);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to update address.']);
-    }
+    // ✅ Read back directly from DB to confirm
+    $verify = $conn->prepare("SELECT `$column` AS addr FROM users WHERE id=?");
+    $verify->bind_param("i", $user_id);
+    $verify->execute();
+    $verified = $verify->get_result()->fetch_assoc();
+    $db_address = $verified['addr'] ?? '';
+
+    // Update session immediately
+    $_SESSION[$column] = $db_address;
+
+    echo json_encode([
+        'success' => true,
+        'message' => 'Address updated successfully!',
+        'new_address' => $db_address
+    ]);
+}
     exit();
 }
 
-// Handle AJAX request for fetching current address
+// ---------- HANDLE ADDRESS FETCH ----------
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['get_address'])) {
     $type = $_GET['type'] ?? '';
-    
-    // Validate the type parameter
-    $valid_types = ['main', 'home', 'work'];
+
     if (!in_array($type, $valid_types)) {
         echo json_encode(['success' => false, 'message' => 'Invalid address type.']);
         exit();
     }
 
-    // Map address type to database column
-    $column = match ($type) {
-        'main' => 'address',
-        'home' => 'address2',
-        'work' => 'address3',
-    };
+    $column = $columns_map[$type];
 
-    $result = mysqli_query($conn, "SELECT $column FROM users WHERE id='$user_id'");
-    $user = mysqli_fetch_assoc($result);
-    $current_address = $user[$column] ?? "";
+    $stmt = $conn->prepare("SELECT `$column` AS addr FROM users WHERE id=?");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $current_address = $row['addr'] ?? "";
 
     echo json_encode(['success' => true, 'address' => $current_address]);
     exit();
 }
-?>
 
-<?php
-// If we reach here, it means no valid AJAX request was made
-// Redirect back to dashboard
-header("Location: userDashboard.php");
+// Invalid request fallback
+echo json_encode(['success' => false, 'message' => 'Invalid request.']);
 exit();
 ?>

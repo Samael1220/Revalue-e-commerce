@@ -270,3 +270,59 @@ document.addEventListener("DOMContentLoaded", function () {
   // Personal details are populated by PHP from the database
   // No need to override with dummy data
 });
+
+function saveAddress(type) {
+  const addressInput = document.getElementById("addressInput");
+  if (!addressInput) {
+    console.error("Address input field not found!");
+    return;
+  }
+
+  const newAddress = addressInput.value.trim();
+  if (!newAddress) {
+    alert("❌ Please enter an address.");
+    return;
+  }
+
+  // Disable input & button while processing
+  addressInput.disabled = true;
+  const saveButton = document.getElementById("saveAddressBtn");
+  if (saveButton) {
+    saveButton.disabled = true;
+    saveButton.textContent = "Saving...";
+  }
+
+  fetch("editAddress.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: `update_address=1&address_type=${encodeURIComponent(
+      type
+    )}&new_address=${encodeURIComponent(newAddress)}`,
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.success) {
+        // ✅ Update the displayed address without reloading
+        const displayElem = document.getElementById(type + "AddressDisplay");
+        if (displayElem) displayElem.textContent = data.new_address;
+
+        showToast("success", "Address updated successfully!");
+        addressInput.value = ""; // clear input
+      } else {
+        showToast("error", "Failed to update address: " + data.message);
+        console.error("Address update error:", data.error);
+      }
+    })
+    .catch((err) => {
+      showToast("error", "Network error. Please try again.");
+      console.error("AJAX Error:", err);
+    })
+    .finally(() => {
+      // Re-enable input & button
+      addressInput.disabled = false;
+      if (saveButton) {
+        saveButton.disabled = false;
+        saveButton.textContent = "Save Address";
+      }
+    });
+}

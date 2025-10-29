@@ -10,110 +10,106 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Check if cart items are selected via POST or fetch all cart items via GET
-if (isset($_POST['cart_ids']) && !empty($_POST['cart_ids'])) {
-    // Handle POST request (from userDashboard.php)
-    $cart_ids = $_POST['cart_ids'];
-    $placeholders = implode(',', array_fill(0, count($cart_ids), '?'));
-    $types = str_repeat('i', count($cart_ids));
-    
-    // Fetch selected cart items with their details
-    $sql = "SELECT c.id AS cart_id, i.id AS product_id, i.name, i.size, i.price, i.image, c.quantity
-            FROM cart c
-            JOIN inventory i ON c.product_id = i.id
-            WHERE c.id IN ($placeholders) AND c.user_id=?";
-    $stmt = $conn->prepare($sql);
-    $params = array_merge($cart_ids, [$user_id]);
-    $stmt->bind_param($types . 'i', ...$params);
-    $stmt->execute();
-    $result = $stmt->get_result();
-} else {
-    // Handle GET request (from cart modal) - fetch all cart items
-    $sql = "SELECT c.id AS cart_id, i.id AS product_id, i.name, i.size, i.price, i.image, c.quantity
-            FROM cart c
-            JOIN inventory i ON c.product_id = i.id
-            WHERE c.user_id=?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    
-    // If no items in cart, redirect to userDashboard
-    if ($result->num_rows === 0) {
-        header("Location: userDashboard.php");
-        exit();
-    }
+// Fetch user addresses
+$stmtAddr = $conn->prepare("SELECT address, address2, address3 FROM users WHERE id=?");
+$stmtAddr->bind_param("i", $user_id);
+$stmtAddr->execute();
+$userAddresses = $stmtAddr->get_result()->fetch_assoc();
+$stmtAddr->close();
+
+// Fetch cart items for this user
+$stmtCart = $conn->prepare("
+    SELECT c.id AS cart_id, i.id AS product_id, i.name, i.size, i.price, i.image, c.quantity
+    FROM cart c
+    JOIN inventory i ON c.product_id = i.id
+    WHERE c.user_id = ?
+");
+$stmtCart->bind_param("i", $user_id);
+$stmtCart->execute();
+$selectedItems = $stmtCart->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmtCart->close();
+
+if (!$selectedItems) {
+    header("Location: userDashboard.php");
+    exit();
 }
 
-$selectedItems = [];
-$grandTotal = 0;
-
-while ($row = $result->fetch_assoc()) {
-    $selectedItems[] = $row;
-    $grandTotal += $row['price'] * $row['quantity'];
-}
+// Calculate grand total
+$grandTotal = array_reduce($selectedItems, function($carry, $item) {
+    return $carry + ($item['price'] * $item['quantity']);
+}, 0.0);
 
 // Handle order confirmation
 if (isset($_POST['confirm_order'])) {
+    $shippingAddress = $_POST['shipping_address'] ?? '';
     $conn->begin_transaction();
 
     try {
-        // Collect product names and images
+        // Prepare product details for JSON storage
         $productNames = [];
         $productImages = [];
+        $productSizes = [];
         foreach ($selectedItems as $item) {
             $productNames[] = $item['name'];
             $productImages[] = $item['image'];
+            $productSizes[] = $item['size'];
         }
+        $namesJson = json_encode($productNames);
+        $imagesJson = json_encode($productImages);
+        $sizesJson = json_encode($productSizes);
 
-        // Convert arrays to JSON for storage
-        $productNamesJson = json_encode($productNames);
-        $productImagesJson = json_encode($productImages);
-
-        // Insert order with product info
-        $paymentMethod = "Cash on Delivery";
-        $orderStmt = $conn->prepare("
-            INSERT INTO orders 
-            (user_id, total_amount, payment_method, order_date, product_names, product_images) 
-            VALUES (?, ?, ?, NOW(), ?, ?)
+        // Insert into orders
+        $stmtOrder = $conn->prepare("
+            INSERT INTO orders (user_id, total_amount, payment_method, order_date, shipping_address, product_names, product_images, product_sizes)
+            VALUES (?, ?, ?, NOW(), ?, ?, ?, ?)
         ");
-        $orderStmt->bind_param("idsss", $user_id, $grandTotal, $paymentMethod, $productNamesJson, $productImagesJson);
-        $orderStmt->execute();
-        $order_id = $orderStmt->insert_id;
+        $paymentMethod = "Cash on Delivery";
+        $stmtOrder->bind_param("idsssss", $user_id, $grandTotal, $paymentMethod, $shippingAddress, $namesJson, $imagesJson, $sizesJson);
+        $stmtOrder->execute();
+        $order_id = $stmtOrder->insert_id;
+        $stmtOrder->close();
 
-        // Delete products from inventory
-        $deleteInventoryStmt = $conn->prepare("DELETE FROM inventory WHERE id = ?");
+        // Insert each item into order_items
+        $stmtItem = $conn->prepare("
+            INSERT INTO order_items (order_id, product_id, product_name, product_image, size, quantity, price)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ");
         foreach ($selectedItems as $item) {
-            $deleteInventoryStmt->bind_param("i", $item['product_id']);
-            $deleteInventoryStmt->execute();
+            $stmtItem->bind_param(
+                "iisssii",
+                $order_id,
+                $item['product_id'],
+                $item['name'],
+                $item['image'],
+                $item['size'],
+                $item['quantity'],
+                $item['price']
+            );
+            $stmtItem->execute();
         }
+        $stmtItem->close();
 
-        // Remove items from cart - handle both POST and GET cases
-        if (isset($_POST['cart_ids']) && !empty($_POST['cart_ids'])) {
-            // Remove selected items (from userDashboard)
-            $deleteCartStmt = $conn->prepare("DELETE FROM cart WHERE id IN ($placeholders) AND user_id=?");
-            $deleteCartStmt->bind_param($types . 'i', ...$params);
-            $deleteCartStmt->execute();
-        } else {
-            // Remove all items (from cart modal)
-            $deleteCartStmt = $conn->prepare("DELETE FROM cart WHERE user_id=?");
-            $deleteCartStmt->bind_param("i", $user_id);
-            $deleteCartStmt->execute();
-        }
+        // Delete items from cart
+        $stmtDelCart = $conn->prepare("DELETE FROM cart WHERE user_id=?");
+        $stmtDelCart->bind_param("i", $user_id);
+        $stmtDelCart->execute();
+        $stmtDelCart->close();
 
         $conn->commit();
-        $_SESSION['order_success'] = "✅ Your order has been placed successfully!";
+
+        $_SESSION['order_success_id'] = $order_id;
         header("Location: order_success.php");
         exit();
 
     } catch (Exception $e) {
         $conn->rollback();
-        $_SESSION['order_error'] = "⚠️ Checkout failed: " . $e->getMessage();
+        $_SESSION['order_error'] = "Checkout failed: " . $e->getMessage();
         header("Location: userDashboard.php");
         exit();
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -121,9 +117,7 @@ if (isset($_POST['confirm_order'])) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Review Checkout</title>
-
 <link rel="stylesheet" href="checkout.css">
-
 </head>
 <body>
 <div class="review-container">
@@ -131,59 +125,64 @@ if (isset($_POST['confirm_order'])) {
     <div class="review-header">
       <div>
         <h1>Review Your Order</h1>
-        <div class="review-subtitle">Please confirm your items and total before placing the order.</div>
+        <p class="review-subtitle">Please confirm your items and total before placing the order.</p>
       </div>
       <span class="review-badge">Cash on Delivery</span>
     </div>
 
-<form method="POST" action="">
-    <div class="review-table-wrap">
-      <div class="table-container">
+    <form method="POST">
+      <div class="review-table-wrap">
         <table class="data-table">
-        <thead>
+          <thead>
             <tr>
-                <th>Product</th>
-                <th>Size</th>
-                <th>Price</th>
-                <th>Qty</th>
-                <th>Total</th>
+              <th>Product</th>
+              <th>Size</th>
+              <th>Price</th>
+              <th>Qty</th>
+              <th>Total</th>
             </tr>
-        </thead>
-        <tbody>
+          </thead>
+          <tbody>
             <?php foreach ($selectedItems as $item): ?>
             <tr>
-                <td>
-                  <div class="product-cell">
-                    <img src="<?= htmlspecialchars($item['image']) ?>" alt="<?= htmlspecialchars($item['name']) ?>" class="product-thumb">
-                    <div>
-                      <div style="font-weight:600; color:#0f172a;"><?= htmlspecialchars($item['name']) ?></div>
-                    </div>
-                  </div>
-                </td>
-                <td><?= htmlspecialchars($item['size']) ?></td>
-                <td>₱<?= number_format($item['price'],2) ?></td>
-                <td><?= $item['quantity'] ?></td>
-                <td>₱<?= number_format($item['price'] * $item['quantity'],2) ?></td>
+              <td>
+                <div class="product-cell">
+                  <img src="<?= htmlspecialchars($item['image']) ?>" alt="<?= htmlspecialchars($item['name']) ?>" class="product-thumb">
+                  <div><strong><?= htmlspecialchars($item['name']) ?></strong></div>
+                </div>
+              </td>
+              <td><?= htmlspecialchars($item['size']) ?></td>
+              <td>₱<?= number_format($item['price'],2) ?></td>
+              <td><?= $item['quantity'] ?></td>
+              <td>₱<?= number_format($item['price'] * $item['quantity'],2) ?></td>
             </tr>
-            <input type="hidden" name="cart_ids[]" value="<?= $item['cart_id'] ?>">
             <?php endforeach; ?>
-        </tbody>
+          </tbody>
         </table>
       </div>
-    </div>
 
-    <div class="review-footer">
-      <div class="review-total">
-        <span class="label">Grand Total:</span>
-        <span>₱<?= number_format($grandTotal,2) ?></span>
+      <div class="address-selection">
+        <label for="shipping_address"><strong>Select Shipping Address:</strong></label>
+        <select name="shipping_address" id="shipping_address" required>
+          <?php foreach (['address','address2','address3'] as $key): ?>
+            <?php if (!empty($userAddresses[$key])): ?>
+              <option value="<?= htmlspecialchars($userAddresses[$key]) ?>"><?= htmlspecialchars($userAddresses[$key]) ?></option>
+            <?php endif; ?>
+          <?php endforeach; ?>
+        </select>
       </div>
 
-      <div class="review-actions">
+      <div class="review-footer">
+        <div class="review-total">
+          <span class="label">Grand Total:</span>
+          <span>₱<?= number_format($grandTotal,2) ?></span>
+        </div>
+        <div class="review-actions">
           <button type="submit" name="confirm_order" class="btn btn-primary" onclick="return confirm('Are you sure you want to place this order?');">Confirm Order</button>
           <a href="userDashboard.php" class="btn btn-secondary">Cancel</a>
+        </div>
       </div>
-    </div>
-</form>
+    </form>
   </div>
 </div>
 </body>
