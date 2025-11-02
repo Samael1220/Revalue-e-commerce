@@ -4,7 +4,7 @@ session_start();
 
 // Require login
 if (!isset($_SESSION['user_id'])) {
-    header("Location: index.php");
+    header("Location: store.php");
     exit();
 }
 
@@ -69,6 +69,9 @@ $stmtItems->close();
 $shippingAddress = htmlspecialchars($order['shipping_address'] ?? 'N/A');
 $grandTotal = $order['total_amount'] ?? 0;
 ?>
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -173,7 +176,7 @@ $grandTotal = $order['total_amount'] ?? 0;
         <div class="action-buttons">
             <a href="order_success.php?delete_inventory=1&redirect=userDashboard.php" 
                class="btn btn-primary f"><i class="fas fa-tachometer-alt"></i> Back to Dashboard</a>
-            <a href="order_success.php?delete_inventory=1&redirect=index.php" 
+            <a href="order_success.php?delete_inventory=1&redirect=store.php" 
                class="btn btn-secondary f"><i class="fas fa-shopping-cart"></i> Continue Shopping</a>
         </div>
 

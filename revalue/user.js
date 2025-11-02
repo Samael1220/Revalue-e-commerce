@@ -219,7 +219,7 @@ function showAddAddressModal() {
 function handleLogout() {
   // PHP: Redirect to logout.php or destroy session
   // window.location.href = '/logout.php';
-  window.location.href = "index.php";
+  window.location.href = "store.php";
 }
 
 function showToast(message, type = "info") {

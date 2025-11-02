@@ -4,7 +4,7 @@ session_start();
 
 // Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: index.php");
+    header("Location: store.php");
     exit();
 }
 
@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // --- Logout ---
     if (isset($_POST['logout'])) {
         session_destroy();
-        header("Location: index.php");
+        header("Location: store.php");
         exit();
     }
 
