@@ -183,20 +183,19 @@ $result = $conn->query($sql);
       <h3>Re-Value.PH</h3>
     </div>
 
-    <div class="center container">
-      <input type="text" placeholder="Search…" />
-    </div>
+    
 
     <div class="right">
      
-      <button class="btn btn-outline hv" onclick="openCartModal()"><i data-lucide="shopping-cart">Cart</i></button>
+      <button class="btn btn-outline hv bt" onclick="openCartModal()"><i data-lucide="shopping-cart">Cart</i></button>
       <?php if(isset($_SESSION['user_id'])): ?>
-     <button class="btn btn-outline lcd hv" ><a href="userDashboard.php"><i data-lucide="user">User</i> </a></button>
+     <button class="btn btn-outline lcd hv bt" ><a href="userDashboard.php"><i data-lucide="user">User</i> </a></button>
       <form method="POST" style="display:inline;">
-        <button class="btn btn-outline hv" type="submit" name="logout">Log out</button>
+        <button class="btn btn-outline hv bt" type="submit" name="logout">Log out</button>
       </form>
       <?php else: ?>
-      <button class="btn btn-outline hv" onclick="openModal()">My Account</button>
+        <!-- if walang account eto mag ddisplay -->
+      <button class="btn btn-outline hv bt" onclick="openModal()">My Account</button>
       <?php endif; ?>
     </div>
   </header>
@@ -214,8 +213,10 @@ $result = $conn->query($sql);
       future.
     </h4>
     <div class="btn-container">
-      <button>Shop Collection</button>
-      <button class="btn btn-outline">Learn Our Story</button>
+      <button onclick="window.open('index.html', '_blank')" class="bt">Shop Collection</button>
+
+
+      <button class="btn btn-outline bt" >Learn Our Story</button>
     </div>
   </div>
 </div>
@@ -518,6 +519,39 @@ $result = $conn->query($sql);
     <div class="toast-progress"></div>
 </div>
 
+<?php if(isset($_SESSION['user_id'])): ?>
+<!-- Floating Chat Button + Widget for messaging Admin -->
+<style>
+.chat-fab{position:fixed;right:20px;bottom:20px;z-index:9999;width:56px;height:56px;border-radius:50%;background:#15803d;color:#fff;border:none;box-shadow:0 8px 20px rgba(0,0,0,.2);cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+.chat-fab:hover{background:#166534;transform:translateY(-1px);box-shadow:0 12px 24px rgba(0,0,0,.24)}
+.chat-widget{position:fixed;right:20px;bottom:88px;width:320px;max-height:60vh;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.15);display:flex;flex-direction:column;overflow:hidden;z-index:9999;opacity:0;transform:translateY(8px);visibility:hidden;pointer-events:none;transition:opacity .18s ease,transform .18s ease,visibility .18s ease}
+.chat-widget.open{opacity:1;transform:translateY(0);visibility:visible;pointer-events:auto}
+.chat-header{padding:12px 14px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;background:#f8fafc}
+.chat-messages{padding:12px;height:300px;overflow:auto;background:#f8fafc}
+.msg{max-width:75%;margin:6px 0;padding:8px 10px;border-radius:10px;font-size:14px;line-height:1.3}
+.msg.sent{margin-left:auto;background:#dcfce7;color:#065f46}
+.msg.received{margin-right:auto;background:#fff;border:1px solid #e5e7eb;color:#111827}
+.chat-input{display:flex;gap:6px;padding:10px;border-top:1px solid #e5e7eb;background:#fff}
+.chat-input input{flex:1;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;transition:border-color .15s ease,box-shadow .15s ease}
+.chat-input input:focus{outline:none;border-color:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.15)}
+.chat-input button{padding:10px 12px;background:#16a34a;color:#fff;border:none;border-radius:8px;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+.chat-input button:hover{transform:translateY(-1px);box-shadow:0 8px 16px rgba(22,163,74,.35)}
+</style>
+
+<button class="chat-fab" id="open-user-chat" aria-label="Chat"><i class="fa-solid fa-message"></i></button>
+<div class="chat-widget" id="user-chat">
+  <div class="chat-header">
+    <strong>Message Admin</strong>
+    <button id="close-user-chat" style="border:none;background:none;cursor:pointer">✕</button>
+  </div>
+  <div class="chat-messages" id="user-chat-box"></div>
+  <form class="chat-input" id="user-chat-form">
+    <input type="text" id="user-chat-input" placeholder="Type a message…" autocomplete="off" />
+    <button type="submit">Send</button>
+  </form>
+</div>
+<?php endif; ?>
+
 <script>
   // Toast notification system
   function showToast(type, title, message) {
@@ -593,6 +627,79 @@ $result = $conn->query($sql);
       }
     });
   });
+
+  <?php if(isset($_SESSION['user_id'])): ?>
+  // User chat widget (peer-to-admin)
+  (function(){
+    const openBtn = document.getElementById('open-user-chat');
+    const closeBtn = document.getElementById('close-user-chat');
+    const widget = document.getElementById('user-chat');
+    const form = document.getElementById('user-chat-form');
+    const input = document.getElementById('user-chat-input');
+    const box = document.getElementById('user-chat-box');
+    const sendBtn = form ? form.querySelector('button[type="submit"]') : null;
+    let lastId = 0;
+
+    function appendMessage(m){
+      const div = document.createElement('div');
+      div.className = 'msg ' + (m.is_self ? 'sent' : 'received');
+      div.textContent = m.body;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function fetchMessages(){
+      fetch('chat_fetch.php?since=' + lastId)
+        .then(r=>r.json())
+        .then(data=>{
+          if(data.success && data.messages){
+            data.messages.forEach(m=>{
+              appendMessage({ body: m.body, is_self: (m.sender_id == <?php echo (int)($_SESSION['user_id'] ?? 0); ?>) });
+              lastId = Math.max(lastId, parseInt(m.id));
+            });
+          }
+        });
+    }
+
+    function openWidget(){
+      if(!widget.classList.contains('open')){
+        widget.classList.add('open');
+        setTimeout(()=>input && input.focus(), 60);
+        fetchMessages();
+      }
+    }
+    function closeWidget(){ widget.classList.remove('open'); }
+    openBtn && openBtn.addEventListener('click', ()=>{
+      if(widget.classList.contains('open')){ closeWidget(); } else { openWidget(); }
+    });
+    closeBtn && closeBtn.addEventListener('click', closeWidget);
+
+    form && form.addEventListener('submit', function(e){
+      e.preventDefault();
+      const v = input.value.trim();
+      if(!v) return;
+      // send to server, then refresh from backend to avoid duplicates
+      input.value = '';
+      sendBtn && (sendBtn.disabled = true);
+      const fd = new FormData();
+      fd.append('message', v);
+      fetch('chat_send.php', { method:'POST', body: fd })
+        .then(r=>r.json())
+        .then(data=>{ 
+          if(!data.success){
+            appendMessage({ body: 'Message failed: ' + (data.error || 'server'), is_self: false });
+          }
+          fetchMessages(); 
+        })
+        .catch(()=>{
+          appendMessage({ body: 'Message failed: network error', is_self: false });
+        })
+        .finally(()=>{ sendBtn && (sendBtn.disabled = false); });
+    });
+
+    setInterval(fetchMessages, 3000);
+  })();
+  <?php endif; ?>
 
 </script>
 

@@ -1194,3 +1194,116 @@ body {
   background-color: #28a745;
   color: white;
 }
+
+/* Messaging Section */
+#messaging h2 {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 10px 0 16px 0;
+  color: #1d1d1f;
+}
+
+.dm-container {
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.dm-sidebar {
+  width: 280px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.dm-sidebar-header {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 700;
+  color: #2d7431;
+  background: #f3faf3;
+}
+
+.dm-user-list {
+  max-height: 420px;
+  overflow: auto;
+}
+
+.dm-user-list > div {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+}
+
+.dm-user-list > div:hover {
+  background: rgba(142, 179, 144, 0.08);
+}
+
+.dm-empty {
+  color: #6b7280;
+}
+
+.dm-chat {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+}
+
+.dm-chat-header {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 700;
+  color: #1d1d1f;
+  background: #f8fafc;
+}
+
+.dm-box {
+  height: 360px;
+  overflow: auto;
+  padding: 12px;
+  background: #f8fafc;
+}
+
+.dm-form {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  border-top: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.dm-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dm-input:focus {
+  outline: none;
+  border-color: #8eb390;
+  box-shadow: 0 0 0 3px rgba(142, 179, 144, 0.15);
+}
+
+.dm-send {
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dm-send:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(22, 163, 74, 0.35);
+}

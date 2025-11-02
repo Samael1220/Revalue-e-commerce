@@ -76,7 +76,7 @@ if (isset($_POST['confirm_order'])) {
         ");
         foreach ($selectedItems as $item) {
             $stmtItem->bind_param(
-                "iisssii",
+                "iisssid",
                 $order_id,
                 $item['product_id'],
                 $item['name'],
@@ -138,8 +138,7 @@ if (isset($_POST['confirm_order'])) {
               <th>Product</th>
               <th>Size</th>
               <th>Price</th>
-              <th>Qty</th>
-              <th>Total</th>
+              <th>Select Shipping Address</th>
             </tr>
           </thead>
           <tbody>
@@ -153,23 +152,24 @@ if (isset($_POST['confirm_order'])) {
               </td>
               <td><?= htmlspecialchars($item['size']) ?></td>
               <td>₱<?= number_format($item['price'],2) ?></td>
-              <td><?= $item['quantity'] ?></td>
-              <td>₱<?= number_format($item['price'] * $item['quantity'],2) ?></td>
+              <td>
+                <div class="select-wrapper">
+                  <label for="shipping_address" class="sr-only">Shipping address</label>
+                  <select name="shipping_address" id="shipping_address" class="styled-select" required>
+                    <?php foreach (['address','address2','address3'] as $key): ?>
+                      <?php if (!empty($userAddresses[$key])): ?>
+                        <option value="<?= htmlspecialchars($userAddresses[$key]) ?>">
+                          <?= htmlspecialchars($userAddresses[$key]) ?>
+                        </option>
+                      <?php endif; ?>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+              </td>
             </tr>
             <?php endforeach; ?>
           </tbody>
         </table>
-      </div>
-
-      <div class="address-selection">
-        <label for="shipping_address"><strong>Select Shipping Address:</strong></label>
-        <select name="shipping_address" id="shipping_address" required>
-          <?php foreach (['address','address2','address3'] as $key): ?>
-            <?php if (!empty($userAddresses[$key])): ?>
-              <option value="<?= htmlspecialchars($userAddresses[$key]) ?>"><?= htmlspecialchars($userAddresses[$key]) ?></option>
-            <?php endif; ?>
-          <?php endforeach; ?>
-        </select>
       </div>
 
       <div class="review-footer">
