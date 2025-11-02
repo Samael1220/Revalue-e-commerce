@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Our Story</title>
+    <link rel="stylesheet" href="story.css" />
+  </head>
+  <body>
+    <section class="story-hero">
+      <div class="hero-overlay">
+        <h1>Our Story</h1>
+        <p>Where thrift meets purpose — and every piece tells a story.</p>
+      </div>
+    </section>
+
+    <section class="story-container">
+      <div class="story-text-block">
+        <h2>From Passion to Purpose</h2>
+        <p>
+          Revalue.PH began as a simple passion for thrift fashion — a love for
+          pieces that carry stories. What started with a few racks of curated
+          clothes soon evolved into a purpose: redefining how people view
+          pre-loved fashion. We believe in sustainable style, where every piece
+          is given a new life and every outfit tells a story worth rewearing.
+        </p>
+      </div>
+
+      <div class="story-collage">
+        <div class="collage-grid">
+          <div class="img-box tall">
+            <img src="uploads/1.jpg" alt="Story 1" />
+          </div>
+          <div class="img-box rotate">
+            <img src="uploads/2.jpg" alt="Story 2" />
+          </div>
+          <div class="img-box"><img src="uploads/3.jpg" alt="Story 3" /></div>
+          <div class="img-box"><img src="uploads/10.jpg" alt="Story 10" /></div>
+          <div class="img-box wide">
+            <img src="uploads/4.jpg" alt="Story 4" />
+          </div>
+          <div class="img-box"><img src="uploads/5.jpg" alt="Story 5" /></div>
+          <div class="img-box rotate">
+            <img src="uploads/6.jpg" alt="Story 6" />
+          </div>
+
+          <div class="img-box"><img src="uploads/7.jpg" alt="Story 7" /></div>
+          <div class="img-box"><img src="uploads/8.jpg" alt="Story 8" /></div>
+          <div class="img-box"><img src="uploads/9.jpg" alt="Story 9" /></div>
+        </div>
+      </div>
+
+      <div class="story-text-block">
+        <h2>Mindful Fashion for All</h2>
+        <p>
+          Each collection we curate is handpicked, cleaned, and styled with
+          care. Our goal is not only to bring affordable and stylish pieces but
+          also to inspire conscious shopping — fashion that respects both people
+          and the planet.
+        </p>
+      </div>
+
+      <section class="mission-vision">
+        <div class="mv-intro">
+          <h2>More Than Just Fashion</h2>
+          <p>
+            Behind every thrifted piece lies a purpose — a story of
+            sustainability, individuality, and creativity. At Revalue.PH, our
+            mission and vision keep us inspired to make every outfit meaningful.
+          </p>
+        </div>
+
+        <div class="mv-cards">
+          <div class="mv-card mission">
+            <img src="uploads/12.jpg" alt="Mission Image" />
+            <div class="mv-text">
+              <h3>Our Mission</h3>
+              <p>
+                To redefine thrift shopping in the Philippines by promoting
+                sustainability, individuality, and creativity — giving every
+                piece a second life and every story a new beginning.
+              </p>
+            </div>
+          </div>
+
+          <div class="mv-card vision">
+            <img
+              src="revalue/288032621_433433812123784_4123306123302216214_n.png"
+              alt="Vision Image"
+            />
+            <div class="mv-text">
+              <h3>Our Vision</h3>
+              <p>
+                To become the leading sustainable fashion movement that inspires
+                mindful consumption and celebrates authenticity — one revalued
+                outfit at a time.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="back-home">
+        <button class="btn" onclick="location.href='index.html'">
+          ← Back to Home
+        </button>
+      </div>
+    </section>
+
+    <script>
+      const blocks = document.querySelectorAll(
+        ".story-text-block, .mv-section"
+      );
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("visible");
+            }
+          });
+        },
+        { threshold: 0.2 }
+      );
+
+      blocks.forEach((block) => observer.observe(block));
+    </script>
+  </body>
+</html>
