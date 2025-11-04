@@ -55,12 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="fp-page">
   <div class="fp-card">
-    <div class="fp-header">
-      <div class="fp-brand">
-        <i class="fa-solid fa-leaf" style="color:darkgreen"></i>
-        <strong>Re-Value.PH</strong>
-      </div>
-    </div>
+   
     <div class="fp-body">
       <h2 class="fp-title">Reset Password</h2>
       <div class="fp-subtitle">Enter your email and a new password.</div>
@@ -95,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </form>
 
       <div class="fp-actions">
-        <a href="index.php" class="fp-muted">Back to login</a>
+        <a href="store.php" class="fp-muted">Back to login</a>
       </div>
     </div>
   </div>
