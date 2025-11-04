@@ -128,7 +128,7 @@ body {
 .logo-icon {
   width: 32px;
   height: 32px;
-  background: hsl(var(--sage));
+
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
@@ -1520,4 +1520,15 @@ body {
   .modal-actions .btn {
     width: 100%;
   }
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-icon img {
+  width: 40px; /* adjust this to fit your header height */
+  height: 40px;
+  object-fit: contain; /* ensures the logo keeps its shape */
 }

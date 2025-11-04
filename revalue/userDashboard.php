@@ -206,7 +206,10 @@ $allOrdersQuery->close();
     <nav class="top-nav">
       <div class="nav-content">
         <div class="logo">
-          <div class="logo-icon">P</div>
+          <div class="logo-icon">
+
+            <img src="uploads/logo.webp" alt="logo">
+          </div>
           <span class="sage">Re-Value.PH</span>
         </div>
 

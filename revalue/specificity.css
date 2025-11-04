@@ -1466,6 +1466,34 @@ input {
   transform: translateY(2px);
 }
 
+.ht {
+  font-family: "Poppins", sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* space between logo and text */
+}
+
+.left img {
+  width: 45px; /* adjust size if needed */
+  height: 45px;
+  object-fit: contain;
+  border-radius: 50%; /* remove this if your logo isn’t circular */
+  border: 2px solid var(--accent);
+}
+
+.left .ht {
+  font-family: "Poppins", sans-serif;
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: var(--text);
+  letter-spacing: 0.5px;
+}
+
 /* .wrapper {
   width: 420px;
   padding: 30px 20px;
