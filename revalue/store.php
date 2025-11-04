@@ -164,7 +164,7 @@ $result = $conn->query($sql);
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Re-Value.PH</title>
+<title>RE-VALUE.PH</title>
  <script src="https://unpkg.com/lucide@latest" defer></script>
     <script defer>
     document.addEventListener('DOMContentLoaded', () => {
@@ -185,8 +185,9 @@ $result = $conn->query($sql);
 <div class="cont-head">
   <header class="header ps-mg">
     <div class="left">
-    <h2 style="margin-bottom: 0;"><i class="fa-solid fa-leaf" style="color:darkgreen"></i></h2>
-      <h3>Re-Value.PH</h3>
+    <h2 style="margin-bottom: 0;"></h2>
+    <img src="uploads/logo.webp" alt="Logo">
+      <h3 class="ht">RE-VALUE.PH</h3>
     </div>
 
     
@@ -296,8 +297,8 @@ $result = $conn->query($sql);
 
   <!-- RESET FILTERS BUTTON -->
 <form method="GET">
-  <button type="submit" name="reset" value="1" class="size-btn" style="background:#ccc; margin-top:10px; width:100%;">
-    Reset Filters
+  <button type="submit" name="reset" value="1" class="size-btn bt" style="background:#ccc; margin-top:10px; width:95%;">
+    Reset Filter
   </button>
 </form>
 
@@ -413,7 +414,7 @@ $result = $conn->query($sql);
   <div class="modal">
     <div class="first-container">
       <div class="form-content">
-        <h1 class="h1-modal">Re-Value.PH</h1>
+        <h1 class="h1-modal">RE-VALUE.PH</h1>
         <h2 class="h2-modal">Welcome Back!</h2>
         <p class="p-modal">Please enter your login details below</p>
 
@@ -444,7 +445,7 @@ $result = $conn->query($sql);
     <!-- Register Form Container -->
     <div class="first-container" id="register-form-container" style="display: none;">
       <div class="form-content">
-        <h1 class="h1-modal">Re-Value.PH</h1>
+        <h1 class="h1-modal">RE-VALUE.PH</h1>
         <h2 class="h2-modal">Create Account</h2>
         <p class="p-modal">Please fill in your details to create an account</p>
 
