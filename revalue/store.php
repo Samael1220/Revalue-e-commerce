@@ -442,42 +442,56 @@ $result = $conn->query($sql);
  </div>
     </div>
 
-    <!-- Register Form Container -->
-    <div class="first-container" id="register-form-container" style="display: none;">
-      <div class="form-content">
-        <h1 class="h1-modal">RE-VALUE.PH</h1>
-        <h2 class="h2-modal">Create Account</h2>
-        <p class="p-modal">Please fill in your details to create an account</p>
+   <!-- Register Form Container -->
+<!-- Register Form Container -->
+<div class="first-container" id="register-form-container" style="display: none;">
+  <div class="form-content">
+    
+    <h2 class="h2-modal">Create Account</h2>
+    <p class="p-modal">Please fill in your details to create an account</p>
 
+    <form class="auth-form" method="post" action="">
+      <div class="input-group">
+        <label class="input-label" for="full-name">Full Name</label>
+        <input type="text" id="full-name" name="full-name" placeholder="Enter your full name" required />
+      </div>
+      <div class="input-group">
+        <label class="input-label" for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="Enter your email" required />
+      </div>
+      <div class="input-group">
+        <label class="input-label" for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="Create a password" required />
+      </div>
+      <div class="input-group">
+        <label class="input-label" for="confirm-pass">Confirm Password</label>
+        <input type="password" id="confirm-pass" name="confirm-pass" placeholder="Confirm your password" required />
+      </div>
+      
+      <!-- Terms and Conditions Checkbox -->
+      <div class="terms-group">
+        <label class="terms-label">
+          <input type="checkbox" id="terms" name="terms" required />
+          <span class="checkmark"></span>
+          I agree to the <a href="#" class="terms-link" data-type="terms">Terms and Conditions</a> and <a href="#" class="terms-link" data-type="privacy">Privacy Policy</a>
+        </label>
+        <div class="terms-error" id="terms-error"></div>
+      </div>
 
-        <form class="auth-form" method="post" action="">
-          <div class="input-group">
-            <label class="input-label" for="full-name">Full Name</label>
-            <input type="text" id="full-name" name="full-name" placeholder="Enter your full name" required />
-          </div>
-          <div class="input-group">
-            <label class="input-label" for="email">Email</label>
-            <input type="email" id="email" name="email" placeholder="Enter your email" required />
-          </div>
-          <div class="input-group">
-            <label class="input-label" for="password">Password</label>
-            <input type="password" id="password" name="password" placeholder="Create a password" required />
-          </div>
-          <div class="input-group">
-            <label class="input-label" for="confirm-pass">Confirm Password</label>
-            <input type="password" id="confirm-pass" name="confirm-pass" placeholder="Confirm your password" required />
-          </div>
-          <button class="btn-form" type="submit" name="register">Create Account</button>
-        </form>
+      <button class="btn-form" type="submit" name="register" id="register-btn">Create Account</button>
+    </form>
 
-        <div class="forgot-password">
-          <div class="register-link">
-            <span>Already have an account? </span>
-            <a href="#" id="back-to-login">Sign in here</a>
-          </div>
-        </div>
+    <div class="forgot-password">
+      <div class="register-link">
+        <span>Already have an account? </span>
+        <a href="#" id="back-to-login">Sign in here</a>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container"></div>
 
     <div class="sec-container">
       <div class="decorative-circle"></div>
@@ -486,7 +500,7 @@ $result = $conn->query($sql);
         <img src="uploads/anthony-sebbo-Qn8VH9dE7-U-unsplash.jpg" alt="Fashion Image">
       </div>
     </div>
-  </div>
+  </div>  
 </div>
 
 <?php endif; ?>

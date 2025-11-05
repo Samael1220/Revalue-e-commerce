@@ -497,3 +497,122 @@ style.textContent = `
       }
   `;
 document.head.appendChild(style);
+
+// Terms and Conditions Functions
+function initTermsAndConditions() {
+  const termsCheckbox = document.getElementById("terms");
+  const registerBtn = document.getElementById("register-btn");
+  const termsError = document.getElementById("terms-error");
+  const registerForm = document.querySelector(
+    "#register-form-container .auth-form"
+  );
+
+  // Enable/disable register button based on terms acceptance
+  function toggleRegisterButton() {
+    if (termsCheckbox.checked) {
+      registerBtn.disabled = false;
+      termsError.classList.remove("show");
+      termsError.textContent = "";
+    } else {
+      registerBtn.disabled = true;
+    }
+  }
+
+  // Validate terms on form submission
+  function validateTerms() {
+    if (!termsCheckbox.checked) {
+      termsError.textContent =
+        "You must accept the Terms and Conditions to continue";
+      termsError.classList.add("show");
+      return false;
+    }
+    termsError.classList.remove("show");
+    return true;
+  }
+
+  // Real-time validation
+  termsCheckbox.addEventListener("change", toggleRegisterButton);
+
+  // Form submission validation
+  registerForm.addEventListener("submit", function (e) {
+    if (!validateTerms()) {
+      e.preventDefault();
+
+      // Add shake animation to terms checkbox
+      termsCheckbox.parentElement.style.animation = "shake 0.5s ease-in-out";
+      setTimeout(() => {
+        termsCheckbox.parentElement.style.animation = "";
+      }, 500);
+    }
+  });
+
+  // Initialize button state
+  toggleRegisterButton();
+}
+
+// Toast Notification Functions for Terms
+function initTermsToast() {
+  const toastContainer = document.getElementById("toast-container");
+
+  function showTermsToast(title, message, duration = 5000) {
+    const toast = document.createElement("div");
+    toast.className = "toast terms-toast";
+    toast.innerHTML = `
+      <div class="toast-icon">📄</div>
+      <div class="toast-content">
+        <div class="toast-title">${title}</div>
+        <div class="toast-message">${message}</div>
+      </div>
+      <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+    `;
+
+    toastContainer.appendChild(toast);
+
+    // Trigger animation
+    setTimeout(() => toast.classList.add("show"), 100);
+
+    // Auto remove after duration
+    if (duration > 0) {
+      setTimeout(() => {
+        if (toast.parentElement) {
+          toast.classList.remove("show");
+          setTimeout(() => toast.remove(), 300);
+        }
+      }, duration);
+    }
+
+    return toast;
+  }
+
+  return { showTermsToast };
+}
+
+// Terms Links Handler - Updated for new HTML pages
+function initTermsLinks() {
+  document.querySelectorAll(".terms-link").forEach((link) => {
+    link.addEventListener("click", function (e) {
+      e.preventDefault();
+      const type = this.getAttribute("data-type");
+
+      if (type === "terms") {
+        // Open terms.html in a new tab
+        window.open("terms.html", "_blank", "width=900,height=700");
+      } else if (type === "privacy") {
+        // Open privacy.html in a new tab
+        window.open("privacy.html", "_blank", "width=900,height=700");
+      }
+    });
+  });
+}
+
+// Initialize everything when DOM is loaded
+document.addEventListener("DOMContentLoaded", function () {
+  initTermsAndConditions();
+  initTermsLinks();
+});
+
+// Initialize everything when DOM is loaded
+document.addEventListener("DOMContentLoaded", function () {
+  initTermsAndConditions();
+  initTermsLinks();
+});
