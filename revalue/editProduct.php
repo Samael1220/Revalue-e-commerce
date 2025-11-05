@@ -80,24 +80,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <!-- Current Image Display -->
                 <div class="form-group">
-                    <label>Current Image</label>
-                    <div class="current-image">
-                        <img src="<?= $product['image'] ?>" alt="Current product image">
-                        <span class="image-label">Current Image</span>
-                    </div>
+                <label>Current Image</label>
+                <div class="current-image">
+                    <img id="preview-image" src="<?= $product['image'] ?>" alt="Current product image" style="max-width:200px; border-radius:8px;">
+                    <span class="image-label">Current Image</span>
+                </div>
                 </div>
 
                 <!-- New Image Upload -->
                 <div class="form-group">
-                    <label for="image">Update Image (Optional)</label>
-                    <div class="file-upload">
-                        <input type="file" name="image" id="image" accept="image/*">
-                        <label for="image" class="file-upload-label">
-                            <span class="upload-icon">📷</span>
-                            <span class="upload-text">Choose New Image</span>
-                        </label>
-                    </div>
+                <label for="image">Update New Image</label>
+                <div class="file-upload">
+                    <input type="file" name="image" id="image" accept="image/*">
+                    <label for="image" class="file-upload-label">
+                    <span class="upload-icon">📷</span>
+                    <span class="upload-text">Choose New Image</span>
+                    </label>
                 </div>
+                </div>
+
+                <!-- Preview Script -->
+                <script>
+                document.getElementById('image').addEventListener('change', function (event) {
+                    const file = event.target.files[0];
+                    const preview = document.getElementById('preview-image');
+
+                    if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        preview.src = e.target.result; // Update image preview
+                    };
+                    reader.readAsDataURL(file);
+                    }
+                });
+                </script>
 
                 <!-- Size and Category Row -->
                 <div class="form-row">

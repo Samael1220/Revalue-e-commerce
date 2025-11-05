@@ -110,7 +110,6 @@ if (isset($_POST['confirm_order'])) {
 }
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -120,69 +119,137 @@ if (isset($_POST['confirm_order'])) {
 <link rel="stylesheet" href="checkout.css">
 </head>
 <body>
-<div class="review-container">
-  <div class="review-card">
-    <div class="review-header">
-      <div>
-        <h1>Review Your Order</h1>
-        <p class="review-subtitle">Please confirm your items and total before placing the order.</p>
+<!-- Keep the PHP part the same as before, just ensure the CSS classes match -->
+<div class="checkout-section">
+  <div class="checkout-container">
+    <div class="checkout-header">
+      <div class="header-content">
+        <h1 class="checkout-title">Review Your Order</h1>
+        <p class="checkout-subtitle">Please confirm your items and total before placing the order.</p>
       </div>
-      <span class="review-badge">Cash on Delivery</span>
+      <div class="progress-indicator">
+        <div class="progress-step">
+          <span class="step-number">1</span>
+          <span class="step-label">Cart</span>
+        </div>
+        <div class="progress-step active">
+          <span class="step-number">2</span>
+          <span class="step-label">Review</span>
+        </div>
+        <div class="progress-step">
+          <span class="step-number">3</span>
+          <span class="step-label">Complete</span>
+        </div>
+      </div>
     </div>
 
-    <form method="POST">
-      <div class="review-table-wrap">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Product</th>
-              <th>Size</th>
-              <th>Price</th>
-              <th>Select Shipping Address</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php foreach ($selectedItems as $item): ?>
-            <tr>
-              <td>
-                <div class="product-cell">
-                  <img src="<?= htmlspecialchars($item['image']) ?>" alt="<?= htmlspecialchars($item['name']) ?>" class="product-thumb">
-                  <div><strong><?= htmlspecialchars($item['name']) ?></strong></div>
+    <div class="checkout-layout">
+      <!-- Order Summary -->
+      <div class="order-summary">
+        <div class="summary-header">
+          <h3>Order Summary</h3>
+          <span class="items-count"><?= count($selectedItems) ?> item<?= count($selectedItems) !== 1 ? 's' : '' ?></span>
+        </div>
+
+        <div class="cart-items">
+          <?php foreach ($selectedItems as $item): ?>
+            <div class="cart-item">
+              <div class="item-image">
+                <img src="<?= htmlspecialchars($item['image']) ?>" alt="<?= htmlspecialchars($item['name']) ?>" class="product-thumb">
+              </div>
+              <div class="item-details">
+                <h4 class="item-name"><?= htmlspecialchars($item['name']) ?></h4>
+                <div class="item-meta">
+                  <span class="item-size">Size: <?= htmlspecialchars($item['size']) ?></span>
+                  
                 </div>
-              </td>
-              <td><?= htmlspecialchars($item['size']) ?></td>
-              <td>₱<?= number_format($item['price'],2) ?></td>
-              <td>
-                <div class="select-wrapper">
-                  <label for="shipping_address" class="sr-only">Shipping address</label>
-                  <select name="shipping_address" id="shipping_address" class="styled-select" required>
-                    <?php foreach (['address','address2','address3'] as $key): ?>
-                      <?php if (!empty($userAddresses[$key])): ?>
-                        <option value="<?= htmlspecialchars($userAddresses[$key]) ?>">
-                          <?= htmlspecialchars($userAddresses[$key]) ?>
-                        </option>
-                      <?php endif; ?>
-                    <?php endforeach; ?>
-                  </select>
-                </div>
-              </td>
-            </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
+                <div class="item-price">₱<?= number_format($item['price'], 2) ?></div>
+              </div>
+              <div class="item-total">
+                ₱<?= number_format($item['price'] * $item['quantity'], 2) ?>
+              </div>
+            </div>
+          <?php endforeach; ?>
+        </div>
+
+        <div class="order-totals">
+          <div class="total-row">
+            <span>Subtotal</span>
+            <span>₱<?= number_format($grandTotal, 2) ?></span>
+          </div>
+          <div class="total-row">
+            <span>Shipping</span>
+            <span>Free</span>
+          </div>
+          <div class="total-row final">
+            <span>Total</span>
+            <span class="grand-total">₱<?= number_format($grandTotal, 2) ?></span>
+          </div>
+        </div>
       </div>
 
-      <div class="review-footer">
-        <div class="review-total">
-          <span class="label">Grand Total:</span>
-          <span>₱<?= number_format($grandTotal,2) ?></span>
-        </div>
-        <div class="review-actions">
-          <button type="submit" name="confirm_order" class="btn btn-primary" onclick="return confirm('Are you sure you want to place this order?');">Confirm Order</button>
-          <a href="userDashboard.php" class="btn btn-secondary">Cancel</a>
-        </div>
+      <!-- Checkout Form -->
+      <div class="checkout-form-container">
+        <form method="POST" class="checkout-form">
+          <div class="form-section">
+            <h4 class="section-title">Shipping Address</h4>
+            <div class="select-wrapper">
+             
+              <select name="shipping_address" id="shipping_address" class="styled-select" required>
+                <?php foreach (['address','address2','address3'] as $key): ?>
+                  <?php if (!empty($userAddresses[$key])): ?>
+                    <option value="<?= htmlspecialchars($userAddresses[$key]) ?>">
+                      <?= htmlspecialchars($userAddresses[$key]) ?>
+                    </option>
+                  <?php endif; ?>
+                <?php endforeach; ?>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h4 class="section-title">Payment Method</h4>
+            <div class="payment-options">
+              <label class="payment-option selected">
+                <input type="radio" name="payment_method" value="Cash on Delivery" checked>
+                <div class="payment-content">
+                  <span class="payment-icon">💵</span>
+                  <div class="payment-info">
+                    <span class="payment-name">Cash on Delivery</span>
+                    <span class="payment-desc">Pay when you receive your order</span>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="order-security">
+            <div class="security-features">
+              <div class="security-item">
+                <span class="security-icon">🔒</span>
+                <span>Secure checkout</span>
+              </div>
+              <div class="security-item">
+                <span class="security-icon">🚚</span>
+                <span>Free delivery</span>
+              </div>
+              <div class="security-item">
+                <span class="security-icon">↩️</span>
+                <span>Easy returns</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" name="confirm_order" class="btn-place-order" onclick="return confirm('Are you sure you want to place this order?');">
+              <span class="btn-text">Confirm Order</span>
+             
+            </button>
+            <a href="userDashboard.php" class="btn-back">Cancel Order</a>
+          </div>
+        </form>
       </div>
-    </form>
+    </div>
   </div>
 </div>
 </body>

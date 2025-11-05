@@ -410,6 +410,132 @@ aside form button {
 #register-form-container .forgot-password {
   margin-top: 1rem;
 }
+/* Terms and Conditions Styles */
+.terms-group {
+  width: 100%;
+}
+
+.terms-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #666;
+  padding: 8px 0;
+  position: relative;
+}
+
+.terms-label input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  position: relative;
+  top: 2px;
+  height: 18px;
+  width: 18px;
+  background-color: #fff;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.terms-label:hover input ~ .checkmark {
+  border-color: #5a2d0c;
+}
+
+.terms-label input:checked ~ .checkmark {
+  background-color: #5a2d0c;
+  border-color: #5a2d0c;
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 5px;
+  top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.terms-label input:checked ~ .checkmark:after {
+  display: block;
+}
+
+.terms-link {
+  color: #5a2d0c;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.terms-link:hover {
+  color: #3a1f0e;
+  text-decoration: underline;
+}
+
+.terms-error {
+  color: #e74c3c;
+  font-size: 12px;
+  margin-top: 4px;
+  min-height: 16px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.terms-error.show {
+  opacity: 1;
+}
+
+/* Disabled button state */
+.btn-form:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-form:disabled:hover {
+  background-color: #ccc;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Focus styles for accessibility */
+.terms-label input:focus ~ .checkmark {
+  box-shadow: 0 0 0 3px rgba(90, 45, 12, 0.2);
+  border-color: #5a2d0c;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .terms-label {
+    font-size: 13px;
+    gap: 10px;
+  }
+
+  .checkmark {
+    height: 16px;
+    width: 16px;
+  }
+
+  .checkmark:after {
+    left: 4px;
+    top: 1px;
+    width: 3px;
+    height: 7px;
+  }
+}
 
 .modal {
   background: #fff;
@@ -1464,6 +1590,34 @@ input {
 
 .bt:active {
   transform: translateY(2px);
+}
+
+.ht {
+  font-family: "Poppins", sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* space between logo and text */
+}
+
+.left img {
+  width: 45px; /* adjust size if needed */
+  height: 45px;
+  object-fit: contain;
+  border-radius: 50%; /* remove this if your logo isn’t circular */
+  border: 2px solid var(--accent);
+}
+
+.left .ht {
+  font-family: "Poppins", sans-serif;
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: var(--text);
+  letter-spacing: 0.5px;
 }
 
 /* .wrapper {

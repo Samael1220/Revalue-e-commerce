@@ -18,6 +18,32 @@ body {
   background: var(--bg);
 }
 
+/* Logo container */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem; /* space between image and brand text */
+}
+
+/* Image styling */
+.logo img {
+  height: 40px; /* adjust depending on your header height */
+  width: auto; /* keeps aspect ratio */
+  object-fit: contain;
+  display: block;
+}
+
+/* Optional: make it scale smoothly when resizing */
+@media (max-width: 600px) {
+  .logo img {
+    height: 32px;
+  }
+
+  .brand {
+    font-size: 1.2rem;
+  }
+}
+
 /* Header base */
 .header {
   position: sticky;
@@ -197,14 +223,14 @@ body {
 .hero-section {
   position: relative;
   width: 100%;
-  min-height: 600px;
+  min-height: 500px;
   background: var(--secondary);
   overflow: hidden;
 }
 
 @media (min-width: 768px) {
   .hero-section {
-    min-height: 700px;
+    min-height: 500px;
   }
 }
 
@@ -242,7 +268,7 @@ body {
 
 @media (min-width: 768px) {
   .hero-content {
-    min-height: 700px;
+    min-height: 75vh;
     padding: 4rem 8rem;
   }
 }
