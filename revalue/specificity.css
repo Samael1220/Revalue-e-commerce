@@ -28,6 +28,77 @@ h6 {
   height: 55%;
 }
 
+/* Media Queries for Responsive Height */
+
+/* Large Desktops (27" monitors and above) */
+@media (min-width: 1921px) {
+  .sec-intro {
+    height: 65%;
+  }
+}
+
+/* Standard Desktops (1200px - 1920px) */
+@media (min-width: 1200px) and (max-width: 1920px) {
+  .sec-intro {
+    height: 60%;
+  }
+}
+
+/* Laptops and Small Desktops (992px - 1199px) */
+@media (min-width: 992px) and (max-width: 1199px) {
+  .sec-intro {
+    height: 55%;
+  }
+}
+
+/* Tablets Landscape (768px - 991px) */
+@media (min-width: 768px) and (max-width: 991px) {
+  .sec-intro {
+    height: 50%;
+  }
+}
+
+/* Tablets Portrait and Large Phones (576px - 767px) */
+@media (min-width: 576px) and (max-width: 767px) {
+  .sec-intro {
+    height: 45%;
+  }
+}
+
+/* Small Phones (375px - 575px) */
+@media (min-width: 375px) and (max-width: 575px) {
+  .sec-intro {
+    height: 40%;
+  }
+}
+
+/* Extra Small Phones (under 375px) */
+@media (max-width: 374px) {
+  .sec-intro {
+    height: 35%;
+  }
+}
+
+/* Height-specific adjustments for very tall screens */
+@media (min-height: 1000px) {
+  .sec-intro {
+    height: 50%;
+  }
+}
+
+@media (min-height: 1200px) {
+  .sec-intro {
+    height: 40%;
+  }
+}
+
+/* Fix for 27" monitors specifically */
+@media (min-width: 1920px) and (min-height: 1080px) {
+  .sec-intro {
+    height: 65%;
+  }
+}
+
 hr {
   margin: 0;
   border-top: 1px solid hsl(var(--border));
@@ -1615,66 +1686,37 @@ input {
 .left .ht {
   font-family: "Poppins", sans-serif;
   font-weight: 800;
-  font-size: 1.2rem;
+  font-size: 1.5rem;
   color: var(--text);
   letter-spacing: 0.5px;
 }
 
-/* .wrapper {
-  width: 420px;
-  padding: 30px 20px;
+.first-container {
+  border-radius: 16px;
+}
+
+.sec-container {
+  border-radius: 0 16px 16px 0;
+}
+/* Cart notification badge CSS */
+.cart-container {
+  position: relative;
+  display: inline-block;
+}
+
+.cart-badge {
   position: absolute;
-  bottom: 50px;
-  right: 0;
-  overflow: hidden;
-}
-#show-toast {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  top: 50%;
-  left: 50%;
-  background-color: #101020;
-  color: #ffffff;
-  padding: 20px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-#toast2 {
-  width: 380px;
-  height: 80px;
-  padding: 20px;
-  background-color: #ffffff;
-  box-shadow: 0 10px 20px rgba(75, 50, 50, 0.05);
-  border-left: 8px solid #47d764;
-  border-radius: 7px;
-  display: grid;
-  grid-template-columns: 1.2fr 6fr 0.5fr;
-  transform: translate(400px);
-  transition: 1s;
-}
-.container-1,
-.container-2 {
-  align-self: center;
-}
-.container-1 i {
-  font-size: 40px;
-  color: #47d764;
-}
-.container-2 p:first-child {
-  color: #101020;
-  font-weight: 600;
-  font-size: 16px;
-}
-.container-2 p:last-child {
+  top: -8px;
+  right: -8px;
+  background-color: #ff4444;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   font-size: 12px;
-  color: #656565;
-  font-weight: 400;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
-#toast button {
-  align-self: flex-start;
-  background-color: transparent;
-  font-size: 25px;
-  line-height: 0;
-  color: #656565;
-  cursor: pointer;
-} */

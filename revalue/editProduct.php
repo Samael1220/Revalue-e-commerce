@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="styleForAdmin.css">
 </head>
 <body>
-    <div class="main-content">
+    <div class="main-content2">
         <!-- Modern Edit Form -->
         <div class="form-container">
             <div class="form-header">

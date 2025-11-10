@@ -48,7 +48,7 @@ $conn->close();
     <link rel="stylesheet" href="styleForAdmin.css">
 </head>
 <body>
-    <div class="main-content">
+    <div class="main-content2">
         <!-- Toast Container -->
         <div id="toast-container" class="toast-container"></div>
         

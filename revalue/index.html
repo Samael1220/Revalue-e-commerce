@@ -3,7 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Re-Value.PH</title>
+    <title>RE-VALUE.PH</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="styles.css" />
     <script src="https://unpkg.com/lucide@latest"></script>
     <script defer src="carousel.js"></script>
@@ -15,20 +21,20 @@
           <!-- Logo -->
           <div class="logo">
             <img src="uploads/logo.webp" alt="logo" />
-            <a href="/" class="brand">RE-VALUE.PH</a>
+            <a href="#" class="brand">RE-VALUE.PH</a>
           </div>
 
           <!-- Desktop Navigation -->
           <nav class="nav-links">
-            <a href="#home">Home</a>
-            <a href="#new">New & Featured</a>
-            <a href="#collection">Collection</a>
-            <a href="#footer">Contact Us</a>
+            <a href="#">HOME</a>
+            <a href="#new">NEW DROPS</a>
+            <a href="#collection">COLLECTIONS</a>
+            <a href="#footer">CONTACT</a>
           </nav>
 
           <!-- Right Actions -->
           <div class="actions">
-            <a href="store.php" target="_blank" class="sign-in-btn">Sign In</a>
+            <a href="store.php" target="_blank" class="sign-in-btn">SHOP NOW</a>
             <button id="menu-btn" class="icon-btn mobile-only">
               <i data-lucide="menu"></i>
             </button>
@@ -39,13 +45,14 @@
       <!-- Mobile Menu -->
       <div id="mobile-menu" class="mobile-menu">
         <nav class="nav-links">
-          <a href="#home">Home</a>
-          <a href="#new">New & Featured</a>
-          <a href="#collection">Collection</a>
-          <a href="#footer">Contact Us</a>
+          <a href="#home">HOME</a>
+          <a href="#new">NEW DROPS</a>
+          <a href="#collection">COLLECTIONS</a>
+          <a href="#footer">CONTACT</a>
         </nav>
       </div>
     </header>
+
     <main>
       <section class="hero-section">
         <!-- Background Video -->
@@ -63,24 +70,30 @@
         <!-- Hero Content -->
         <div class="hero-content">
           <div class="hero-text-container">
-            <h1 class="hero-title">Revalue. Rewear. Repeat</h1>
-            <p class="hero-subtext">
-              Discover curated pre-loved fashion. Thoughtfully redefined for a
-              new story.
+            <div class="hero-badge">EST. 2025</div>
+            <h1 class="hero-title">
+              <span class="title-line dwt">REVALUE.</span>
+              <span class="title-line accent-text">REWEAR.</span>
+              <span class="title-line wt">REPEAT.</span>
+            </h1>
+            <p class="hero-subtext wt">
+              CURATED PRE-LOVED FASHION. REDEFINED FOR THE STREETS.
             </p>
             <div class="hero-buttons">
-              <a href="store.php" class="btn btn-primary">Shop Now</a>
-              <a href="#collection" class="btn btn-outline"
-                >Explore Collection</a
+              <a href="store.php" class="btn btn-primary">EXPLORE DROPS</a>
+              <a href="#collection" class="btn btn-outline brw wt"
+                >VIEW COLLECTION</a
               >
             </div>
           </div>
         </div>
       </section>
+
       <section class="featured-section" id="new">
         <div class="container">
           <div class="featured-header">
-            <h2>Featured</h2>
+            <div class="section-tag">NEW DROPS</div>
+            <h2 class="section-title">FRESH FINDS</h2>
           </div>
 
           <!-- Carousel Wrapper -->
@@ -90,65 +103,99 @@
             <div class="carousel-track-container">
               <div class="carousel-track">
                 <div class="product-card">
-                  <img
-                    src="revalue/568747135_18031943510718176_742347485881698587_n.jpg"
-                  />
-
-                  <h3>Nautica</h3>
-                  <p>Modern Shirts</p>
-                  <span>₱300</span>
+                  <div class="product-image">
+                    <img
+                      src="revalue/568747135_18031943510718176_742347485881698587_n.jpg"
+                    />
+                    <div class="product-overlay">
+                      <span class="quick-view">QUICK VIEW</span>
+                    </div>
+                  </div>
+                  <div class="product-info">
+                    <span class="product-category">MODERN SHIRTS</span>
+                    <h3>BLACK TEE</h3>
+                    <span class="product-price">₱300</span>
+                  </div>
                 </div>
 
                 <div class="product-card">
-                  <img
-                    src="revalue/569023167_18031943348718176_7206675219372402339_n.jpg"
-                    alt=""
-                  />
-
-                  <h3>Nautica</h3>
-                  <p>Modern Shirts</p>
-                  <span>₱300</span>
+                  <div class="product-image">
+                    <img
+                      src="revalue/569023167_18031943348718176_7206675219372402339_n.jpg"
+                    />
+                    <div class="product-overlay">
+                      <span class="quick-view">QUICK VIEW</span>
+                    </div>
+                  </div>
+                  <div class="product-info">
+                    <span class="product-category">MODERN SHIRTS</span>
+                    <h3>TIME ANGEL</h3>
+                    <span class="product-price">₱300</span>
+                  </div>
                 </div>
 
                 <div class="product-card">
-                  <img
-                    src="revalue/569926101_18031944857718176_6475654961437457538_n.jpg"
-                    alt="Chocolate x Baby Milo"
-                  />
-
-                  <h3>Chocolate x Baby Milo</h3>
-                  <p>Modern Shirts</p>
-                  <span>₱300</span>
+                  <div class="product-image">
+                    <img
+                      src="revalue/569926101_18031944857718176_6475654961437457538_n.jpg"
+                    />
+                    <div class="product-overlay">
+                      <span class="quick-view">QUICK VIEW</span>
+                    </div>
+                  </div>
+                  <div class="product-info">
+                    <span class="product-category">MODERN SHIRTS</span>
+                    <h3>CHOCOLATE X BABY MILO</h3>
+                    <span class="product-price">₱300</span>
+                  </div>
                 </div>
 
                 <div class="product-card">
-                  <img
-                    src="revalue/571092719_18031943600718176_8374766554259480104_n.jpg"
-                    alt="H&M Rap tee design"
-                  />
-
-                  <h3>H&M Rap Tee design</h3>
-                  <p>Modern Shirts</p>
-                  <span>₱350</span>
+                  <div class="product-image">
+                    <img
+                      src="revalue/571092719_18031943600718176_8374766554259480104_n.jpg"
+                    />
+                    <div class="product-overlay">
+                      <span class="quick-view">QUICK VIEW</span>
+                    </div>
+                  </div>
+                  <div class="product-info">
+                    <span class="product-category">MODERN SHIRTS</span>
+                    <h3>H&M RAP TEE</h3>
+                    <span class="product-price">₱350</span>
+                  </div>
                 </div>
-                <div class="product-card">
-                  <img
-                    src="revalue/571019242_18031943834718176_864980706128177505_n.jpg"
-                    alt="Jordan 1 Mid"
-                  />
-                  <h3>Nautica</h3>
-                  <p>Modern Shirts</p>
-                  <span>₱300</span>
-                </div>
-                <div class="product-card">
-                  <img
-                    src="revalue/570881894_18031944575718176_7185066943344677508_n.jpg"
-                    alt="Jordan 1 Mid"
-                  />
 
-                  <h3>Nautica</h3>
-                  <p>Modern Shirts</p>
-                  <span>₱300</span>
+                <div class="product-card">
+                  <div class="product-image">
+                    <img
+                      src="revalue/571019242_18031943834718176_864980706128177505_n.jpg"
+                    />
+                    <div class="product-overlay">
+                      <span class="quick-view">QUICK VIEW</span>
+                    </div>
+                  </div>
+                  <div class="product-info">
+                    <span class="product-category">MODERN SHIRTS</span>
+                    <h3>BLACK CLAY</h3>
+                    <span class="product-price">₱300</span>
+                  </div>
+                </div>
+
+                <div class="product-card">
+                  <div class="product-image">
+                    <img
+                      src="revalue/570881894_18031944575718176_7185066943344677508_n.jpg"
+                    />
+                    <div class="product-overlay">
+                      <span class="quick-view">QUICK VIEW</span>
+                    </div>
+                  </div>
+                  <div class="product-info">
+                    <span class="product-category">MODERN SHIRTS</span>
+                    <h3>NAUTICA</h3>
+                    <span class="product-price">₱300</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -159,65 +206,78 @@
       </section>
 
       <section class="collage-section" id="collection">
-        <div class="container collage-balanced">
-          <!-- Left Column -->
-          <div class="collage-column">
-            <div class="collage-item tall">
-              <img
-                src="models/Gemini_Generated_Image_iyj008iyj008iyj0.png"
-                alt="Running Model"
-              />
-              <div class="collage-text">
-                <h3>Branded Jackets</h3>
-              </div>
-            </div>
-            <div class="collage-item tall">
-              <img
-                src="models/Gemini_Generated_Image_vni94svni94svni9.png"
-                alt="Urban Style"
-              />
-              <div class="collage-text">
-                <h3>Urban Vibes</h3>
-              </div>
-            </div>
-            <div class="collage-item medium">
-              <img
-                src="models/Gemini_Generated_Image_brtx12brtx12brtx.png"
-                alt=""
-              />
-              <div class="collage-text">
-                <h3>Vintage Adidas</h3>
-              </div>
-            </div>
+        <div class="container">
+          <div class="featured-header">
+            <div class="section-tag">COLLECTIONS</div>
+            <h2 class="section-title">THE ARCHIVE</h2>
           </div>
 
-          <!-- Right Column -->
-          <div class="collage-column">
-            <div class="collage-item medium">
-              <img
-                src="models/552217052_719329417788092_2995318837290783952_n.png"
-                alt="Women's Collection"
-              />
-              <div class="collage-text">
-                <h3>Men's Collection</h3>
+          <div class="collage-balanced">
+            <!-- Left Column -->
+            <div class="collage-column">
+              <div class="collage-item tall">
+                <img
+                  src="models/Gemini_Generated_Image_iyj008iyj008iyj0.png"
+                  alt="Running Model"
+                />
+                <div class="collage-text">
+                  <span class="collage-tag">OUTERWEAR</span>
+                  <h3>BRANDED JACKETS</h3>
+                </div>
+              </div>
+              <div class="collage-item tall">
+                <img
+                  src="models/Gemini_Generated_Image_vni94svni94svni9.png"
+                  alt="Urban Style"
+                />
+                <div class="collage-text">
+                  <span class="collage-tag">LIFESTYLE</span>
+                  <h3>URBAN VIBES</h3>
+                </div>
+              </div>
+              <div class="collage-item medium">
+                <img
+                  src="models/Gemini_Generated_Image_brtx12brtx12brtx.png"
+                  alt=""
+                />
+                <div class="collage-text">
+                  <span class="collage-tag">VINTAGE</span>
+                  <h3>VINTAGE ADIDAS</h3>
+                </div>
               </div>
             </div>
-            <div class="collage-item tall">
-              <img
-                src="models/Gemini_Generated_Image_l3kc72l3kc72l3kc.png"
-                alt="Training Gear"
-              />
-              <div class="collage-text">
-                <h3>Nike Gear</h3>
+
+            <!-- Right Column -->
+            <div class="collage-column">
+              <div class="collage-item medium">
+                <img
+                  src="models/552217052_719329417788092_2995318837290783952_n.png"
+                  alt="Women's Collection"
+                />
+                <div class="collage-text">
+                  <span class="collage-tag">ESSENTIALS</span>
+                  <h3>MEN'S COLLECTION</h3>
+                </div>
               </div>
-            </div>
-            <div class="collage-item tall">
-              <img
-                src="models/Gemini_Generated_Image_mjuvi5mjuvi5mjuv.png"
-                alt="Street Wear"
-              />
-              <div class="collage-text">
-                <h3>Street Wear</h3>
+              <div class="collage-item tall">
+                <img
+                  src="models/Gemini_Generated_Image_l3kc72l3kc72l3kc.png"
+                  alt="Training Gear"
+                />
+                <div class="collage-text">
+                  <span class="collage-tag">SPORTSWEAR</span>
+                  <h3>NIKE GEAR</h3>
+                </div>
+              </div>
+              <div class="collage-item tall">
+                <img
+                  src="models/Gemini_Generated_Image_mjuvi5mjuvi5mjuv.png"
+                  alt="Street Wear"
+                />
+                <div class="collage-text">
+                  <span class="collage-tag">PREMIUM</span>
+                  <h3>STREET WEAR</h3>
+                </div>
               </div>
             </div>
           </div>
@@ -227,25 +287,28 @@
       <section class="about-section" id="about">
         <div class="container about-container">
           <div class="about-content">
-            <h2>About Revalue</h2>
-            <p>
-              At <strong>Revalue</strong>, we believe in redefining fashion
+            <div class="section-tag">OUR STORY</div>
+            <h2 class="about-title">
+              REDEFINING <span class="accent-text">STREET CULTURE</span>
+            </h2>
+            <p class="about-description">
+              At <strong>REVALUE</strong>, we believe in redefining fashion
               through sustainability and creativity. Every thrifted piece we
               curate tells a story — reimagined, revalued, and ready to be part
               of a new journey.
             </p>
 
             <div class="our-story">
-              <h3>Our Story</h3>
+              <h3>THE MOVEMENT</h3>
               <p>
                 What started as a small love for thrifting grew into a
                 purpose-driven shop — one that promotes mindful fashion and
                 timeless style. Each collection is handpicked, cleaned, and
                 styled with care, ensuring every piece continues its story in
-                someone else’s wardrobe.
+                someone else's wardrobe.
               </p>
               <button class="bt" onclick="window.open('story.html', '_blank')">
-                Learn Our Story
+                READ MORE
               </button>
             </div>
           </div>
@@ -254,9 +317,15 @@
           <div class="about-images">
             <div class="about-img-box">
               <img src="uploads/2.jpg" alt="Revalue Thrift Shop" />
+              <div class="img-overlay">
+                <span class="img-tag">CURATED</span>
+              </div>
             </div>
             <div class="about-img-box">
               <img src="uploads/1.jpg" alt="Thrift Collection" />
+              <div class="img-overlay">
+                <span class="img-tag">AUTHENTIC</span>
+              </div>
             </div>
           </div>
         </div>
@@ -267,49 +336,59 @@
           <div class="footer-brand">
             <h3>RE-VALUE.PH</h3>
             <p>
-              Redefining style with modern and vintage collections for every
-              generation.
+              REDEFINING STYLE WITH MODERN AND VINTAGE COLLECTIONS FOR EVERY
+              GENERATION.
             </p>
+            <div class="footer-badge">EST. 2025</div>
           </div>
 
           <div class="footer-links">
-            <h4>Shop</h4>
+            <h4>SHOP</h4>
             <ul>
-              <li><a href="#new">New Arrivals</a></li>
-              <li><a href="#men">Men</a></li>
-              <li><a href="#women">Women</a></li>
-              <li><a href="#sale">Sale</a></li>
+              <li><a href="#new">NEW ARRIVALS</a></li>
+              <li><a href="#men">MEN</a></li>
+              <li><a href="#women">WOMEN</a></li>
+              <li><a href="#sale">SALE</a></li>
             </ul>
           </div>
 
           <div class="footer-links">
-            <h4>Support</h4>
+            <h4>SUPPORT</h4>
             <ul>
-              <li><a href="#">Contact Us</a></li>
+              <li><a href="#">CONTACT US</a></li>
               <li><a href="#">FAQs</a></li>
-              <li><a href="#">Shipping & Returns</a></li>
-              <li><a href="#">Privacy Policy</a></li>
+              <li><a href="#">SHIPPING & RETURNS</a></li>
+              <li><a href="#">PRIVACY POLICY</a></li>
             </ul>
           </div>
 
           <div class="footer-socials">
-            <h4>Follow Us</h4>
+            <h4>FOLLOW US</h4>
             <div class="social-icons">
-              <a href="https://www.facebook.com/AngelsThrift11"
-                ><i data-lucide="facebook"></i
-              ></a>
-              <a href="https://www.instagram.com/re_value.ph/"
-                ><i data-lucide="instagram"></i
-              ></a>
-              <a href="https://www.facebook.com/AngelsThrift11"
-                ><i data-lucide="twitter"></i
-              ></a>
+              <a
+                href="https://www.facebook.com/AngelsThrift11"
+                aria-label="Facebook"
+              >
+                <i data-lucide="facebook"></i>
+              </a>
+              <a
+                href="https://www.instagram.com/re_value.ph/"
+                aria-label="Instagram"
+              >
+                <i data-lucide="instagram"></i>
+              </a>
+              <a
+                href="https://www.facebook.com/AngelsThrift11"
+                aria-label="Twitter"
+              >
+                <i data-lucide="twitter"></i>
+              </a>
             </div>
           </div>
         </div>
 
         <div class="footer-bottom">
-          <p>© 2025 RE-VALUE.PH. All rights reserved.</p>
+          <p>© 2025 RE-VALUE.PH. ALL RIGHTS RESERVED.</p>
         </div>
       </footer>
     </main>

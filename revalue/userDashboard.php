@@ -115,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 );
 
                 if ($stmt->execute()) {
-                    $updateMsg = ($stmt->affected_rows > 0) ? "✅ Profile updated successfully!" : "⚠ No changes were made.";
+                    $updateMsg = ($stmt->affected_rows > 0)  ;
                     // Update session
                     $_SESSION['full_name'] = $full_name;
                     $_SESSION['email'] = $email;
@@ -210,7 +210,7 @@ $allOrdersQuery->close();
 
             <img src="uploads/logo.webp" alt="logo">
           </div>
-          <span class="sage">Re-Value.PH</span>
+          <span class="sage ft">RE-VALUE.PH</span>
         </div>
 
         <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
@@ -376,43 +376,141 @@ $result = mysqli_query($conn, $query);
   <h2>My Orders</h2>
   <p>Track and manage all your orders in one place.</p>
 
-  <div class="orders-table-wrapper">
-    <table class="orders-table">
-      <thead>
-        <tr>
-          <th>Order ID</th>
-          <th>Total Amount (₱)</th>
-          <th>Order Date</th>
-          <th>Status</th>
-          <th>Payment Method</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php if (mysqli_num_rows($result) > 0): ?>
-          <?php while ($row = mysqli_fetch_assoc($result)): ?>
-            <tr>
-              <td><?php echo htmlspecialchars($row['id']); ?></td>
-              <td>₱<?php echo number_format($row['total_amount'], 2); ?></td>
-              <td><?php echo htmlspecialchars($row['order_date']); ?></td>
-              <td>
-                <span class="status-badge <?php echo ($row['status'] === 'Pending') ? 'pending' : 'completed'; ?>">
-                  <?php echo htmlspecialchars($row['status']); ?>
-                </span>
-              </td>
-              <td><?php echo htmlspecialchars($row['payment_method']); ?></td>
-            </tr>
-          <?php endwhile; ?>
-        <?php else: ?>
-          <tr>
-            <td colspan="5" class="no-orders">
-              No orders found. Orders will be loaded from the database.
-            </td>
-          </tr>
-        <?php endif; ?>
-      </tbody>
-    </table>
+  <div class="orders-grid">
+    <?php if (mysqli_num_rows($result) > 0): ?>
+      <?php while ($row = mysqli_fetch_assoc($result)): ?>
+        <?php
+        // Fetch order items for this order
+        $order_id = $row['id'];
+        $items_query = $conn->prepare("
+          SELECT oi.*, i.name, i.image, i.size 
+          FROM order_items oi 
+          JOIN inventory i ON oi.product_id = i.id 
+          WHERE oi.order_id = ?
+        ");
+        $items_query->bind_param("i", $order_id);
+        $items_query->execute();
+        $items_result = $items_query->get_result();
+        ?>
+        
+        <div class="order-card">
+          <div class="order-header">
+            <div class="order-info">
+              <h3>Order #<?php echo htmlspecialchars($row['id']); ?></h3>
+              <span class="order-date"><?php echo htmlspecialchars($row['order_date']); ?></span>
+            </div>
+            <span class="status-badge <?php echo ($row['status'] === 'Pending') ? 'pending' : 'completed'; ?>">
+              <?php echo htmlspecialchars($row['status']); ?>
+            </span>
+          </div>
+          
+          <!-- Order Items with Images -->
+          <div class="order-items">
+            <h4>Ordered Items:</h4>
+            <?php while ($item = $items_result->fetch_assoc()): ?>
+              <div class="order-item">
+                <div class="item-image">
+                  <!-- Image Container Box - Shows where image will be inserted -->
+                  <div class="image-container">
+                    <!-- Backend will insert image here later -->
+                  </div>
+                </div>
+                <div class="item-details">
+                  <h4 class="item-name"><?php echo htmlspecialchars($item['name']); ?></h4>
+                  <div class="item-meta">
+                    <span class="item-size">Size: <?php echo htmlspecialchars($item['size']); ?></span>
+                    <span class="item-quantity">Qty: <?php echo $item['quantity']; ?></span>
+                    <span class="item-price">₱<?php echo number_format($item['price'], 2); ?></span>
+                  </div>
+                </div>
+              </div>
+            <?php endwhile; ?>
+          </div>
+          
+          <div class="order-details">
+            <div class="detail-item">
+              <span class="label">Total Amount:</span>
+              <span class="value">₱<?php echo number_format($row['total_amount'], 2); ?></span>
+            </div>
+          </div>
+
+          <?php if ($row['status'] === 'Pending'): ?>
+            <div class="order-actions">
+              <button class="btn-received" onclick="openReceivedModal(<?php echo $row['id']; ?>)">
+                <i data-lucide="package-check"></i>
+                Mark as Received
+              </button>
+            </div>
+          <?php endif; ?>
+        </div>
+      <?php endwhile; ?>
+    <?php else: ?>
+      <div class="no-orders">
+        <i data-lucide="package-open"></i>
+        <h3>No orders found</h3>
+        <p>You haven't placed any orders yet.</p>
+      </div>
+    <?php endif; ?>
   </div>
 </div>
+
+<!-- Order Received Modal -->
+<div id="receivedModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Confirm Order Received</h3>
+      <span class="close" onclick="closeReceivedModal()">&times;</span>
+    </div>
+    <form id="receivedForm" method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="order_id" id="modalOrderId">
+      
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="confirmation">Security Confirmation *</label>
+          <input type="text" id="confirmation" name="confirmation" 
+                 placeholder="Type 'RECEIVED' to confirm" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="productImage">Product Photo (Optional)</label>
+          <input type="file" id="productImage" name="productImage" 
+                 accept="image/*" capture="environment">
+          <small>Take a photo of the received product</small>
+        </div>
+        
+        <div class="security-note">
+          <i data-lucide="shield-alert"></i>
+          <span>This action cannot be undone. Please ensure you have received your order.</span>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="closeReceivedModal()">Cancel</button>
+        <button type="submit" class="btn-confirm" name="mark_received">Confirm Received</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openReceivedModal(orderId) {
+  document.getElementById('modalOrderId').value = orderId;
+  document.getElementById('receivedModal').style.display = 'block';
+}
+
+function closeReceivedModal() {
+  document.getElementById('receivedModal').style.display = 'none';
+  document.getElementById('receivedForm').reset();
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const modal = document.getElementById('receivedModal');
+  if (event.target === modal) {
+    closeReceivedModal();
+  }
+}
+</script>
 
 </section>
 
@@ -515,11 +613,11 @@ document.getElementById('cartForm').addEventListener('submit', function(e) {
     </p>
   </div>
 
-  <div style="text-align: right; margin-bottom: var(--spacing-lg)">
+  <!-- <div style="text-align: right; margin-bottom: var(--spacing-lg)">
     <button class="btn btn-primary" onclick="showAddAddressModal()">
       + Add Address
     </button>
-  </div>
+  </div> -->
 
   <div class="address-grid">
 
@@ -587,7 +685,7 @@ document.getElementById('cartForm').addEventListener('submit', function(e) {
     </p>
   </div>
 
-  <?php if (isset($updateMsg)) echo "<p class='alert'>$updateMsg</p>"; ?>
+  <?php if (isset($updateMsg))  ?>
 
   <form id="personalDetailsForm" method="POST" action="userDashboard.php">
     <div class="form-row">
