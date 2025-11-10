@@ -136,7 +136,7 @@ if (!empty($_GET['price'])) {
     }
 }
 
-// ---- Handle Reset Filters ----
+//     Handle Reset Filters
 if (isset($_GET['reset'])) {
     header("Location: store.php");
     exit;
@@ -145,7 +145,16 @@ if (isset($_GET['reset'])) {
 $sql .= " ORDER BY id DESC";
 $result = $conn->query($sql);
 
+$cart_count = 0;
 
+if (isset($_SESSION['user_id'])) {
+    $user_id = $_SESSION['user_id'];
+    $stmt = $conn->prepare("SELECT SUM(quantity) AS total_items FROM cart WHERE user_id = ?");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $res = $stmt->get_result()->fetch_assoc();
+    $cart_count = $res['total_items'] ?? 0;
+}
 ?>
 
 
@@ -372,7 +381,7 @@ $result = $conn->query($sql);
                   <span class="checker">Available</span>
                 </div>
                 <span class="price">₱<?= number_format($row['price']) ?></span>
-                <div class="cart-container">
+              <div class="cart-container">
   <?php if (isset($_SESSION['user_id'])): ?>
       <?php
       // ✅ check if product already in cart
@@ -537,8 +546,8 @@ $result = $conn->query($sql);
         <div class="cart-total">
           <span>Total: ₱<span id="cart-total">0</span></span>
         </div>
-        <button class="btn-checkout" onclick="proceedToCheckout()">
-          Proceed to Checkout
+        <button class="btn-checkout" onclick="proceedToCheckout(<?php echo $cart_count ?? 0; ?>)">
+                Proceed to Checkout
         </button>
       </div>
     </div>
@@ -749,6 +758,25 @@ $result = $conn->query($sql);
 
 
 <?php endif; ?>
+
+
+<script>
+function updateCartCount() {
+  fetch('cart.php?action=get_cart')  // ✅ add action parameter
+    .then(response => response.json()) // ✅ parse as JSON
+    .then(data => {
+      const badge = document.querySelector('.cart-badge');
+      if (data.success) {
+        badge.textContent = data.count; // ✅ show only the count
+      } else {
+        badge.textContent = 0;
+      }
+    })
+    .catch(err => console.error('Failed to update cart count:', err));
+}
+</script>
+
+
 
 </body>
 </html>

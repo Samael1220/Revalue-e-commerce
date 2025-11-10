@@ -358,8 +358,6 @@ $allOrdersQuery->close();
 <!-- Orders Section -->
 <section id="orders" class="content-section">
 <?php
-
-
 if (!isset($_SESSION['user_id'])) {
     echo "<p class='text-red-500'>No user session found.</p>";
     exit;
@@ -368,7 +366,7 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 // Fetch all orders for this user
-$query = "SELECT id, total_amount, order_date, status, payment_method FROM orders WHERE user_id = $user_id ORDER BY order_date DESC";
+$query = "SELECT * FROM orders WHERE user_id = $user_id ORDER BY order_date DESC";
 $result = mysqli_query($conn, $query);
 ?>
 
@@ -380,17 +378,18 @@ $result = mysqli_query($conn, $query);
     <?php if (mysqli_num_rows($result) > 0): ?>
       <?php while ($row = mysqli_fetch_assoc($result)): ?>
         <?php
-        // Fetch order items for this order
-        $order_id = $row['id'];
-        $items_query = $conn->prepare("
-          SELECT oi.*, i.name, i.image, i.size 
-          FROM order_items oi 
-          JOIN inventory i ON oi.product_id = i.id 
-          WHERE oi.order_id = ?
-        ");
-        $items_query->bind_param("i", $order_id);
-        $items_query->execute();
-        $items_result = $items_query->get_result();
+        // Decode JSON arrays from orders table
+        $names  = json_decode($row['product_names'], true) ?: [];
+        $images = json_decode($row['product_images'], true) ?: [];
+        $sizes  = json_decode($row['product_sizes'], true) ?: [];
+        $prices = json_decode($row['product_prices'], true) ?: [];
+
+        // Ensure all arrays have same length
+        $count = max(count($names), count($images), count($sizes), count($prices));
+        $names  = array_pad($names,  $count, 'Unknown');
+        $images = array_pad($images, $count, 'placeholder.png'); // fallback image
+        $sizes  = array_pad($sizes,  $count, '-');
+        $prices = array_pad($prices, $count, 0);
         ?>
         
         <div class="order-card">
@@ -404,27 +403,25 @@ $result = mysqli_query($conn, $query);
             </span>
           </div>
           
-          <!-- Order Items with Images -->
+          <!-- Order Items with Images and Prices -->
           <div class="order-items">
             <h4>Ordered Items:</h4>
-            <?php while ($item = $items_result->fetch_assoc()): ?>
-              <div class="order-item">
+            <?php for ($i = 0; $i < $count; $i++): ?>
+              <div class="order-item" style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
                 <div class="item-image">
-                  <!-- Image Container Box - Shows where image will be inserted -->
-                  <div class="image-container">
-                    <!-- Backend will insert image here later -->
-                  </div>
+                  <img src="<?php echo htmlspecialchars($images[$i]); ?>" 
+                       alt="<?php echo htmlspecialchars($names[$i]); ?>" 
+                       style="width:80px; height:80px; object-fit:cover; border-radius:5px;" />
                 </div>
                 <div class="item-details">
-                  <h4 class="item-name"><?php echo htmlspecialchars($item['name']); ?></h4>
-                  <div class="item-meta">
-                    <span class="item-size">Size: <?php echo htmlspecialchars($item['size']); ?></span>
-                    <span class="item-quantity">Qty: <?php echo $item['quantity']; ?></span>
-                    <span class="item-price">₱<?php echo number_format($item['price'], 2); ?></span>
+                  <h4 class="item-name"><?php echo htmlspecialchars($names[$i]); ?></h4>
+                  <div class="item-meta" style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <span class="item-size">Size: <?php echo htmlspecialchars($sizes[$i]); ?></span>
+                    <span class="item-price">₱<?php echo number_format($prices[$i], 2); ?></span>
                   </div>
                 </div>
               </div>
-            <?php endwhile; ?>
+            <?php endfor; ?>
           </div>
           
           <div class="order-details">
@@ -434,9 +431,11 @@ $result = mysqli_query($conn, $query);
             </div>
           </div>
 
-          <?php if ($row['status'] === 'Pending'): ?>
+          
+            <!--order received -->
+          <?php if ($row['status'] === 'Delivered'): ?>
             <div class="order-actions">
-              <button class="btn-received" onclick="openReceivedModal(<?php echo $row['id']; ?>)">
+              <button class="btn-received" data-id="<?php echo $row['id']; ?>" onclick="openReceivedModal(<?php echo $row['id']; ?>)">
                 <i data-lucide="package-check"></i>
                 Mark as Received
               </button>
@@ -492,6 +491,7 @@ $result = mysqli_query($conn, $query);
   </div>
 </div>
 
+<!-- Modal and Scripts same as before -->
 <script>
 function openReceivedModal(orderId) {
   document.getElementById('modalOrderId').value = orderId;
@@ -503,16 +503,50 @@ function closeReceivedModal() {
   document.getElementById('receivedForm').reset();
 }
 
-// Close modal when clicking outside
 window.onclick = function(event) {
   const modal = document.getElementById('receivedModal');
-  if (event.target === modal) {
-    closeReceivedModal();
-  }
+  if (event.target === modal) closeReceivedModal();
 }
-</script>
 
+document.getElementById('receivedForm').addEventListener('submit', function(e) {
+    e.preventDefault(); // Prevent default page reload
+
+    const formData = new FormData(this);
+    const orderId = formData.get('order_id');
+
+    // Optional: simple check for security confirmation
+    if (formData.get('confirmation').toUpperCase() !== 'RECEIVED') {
+        alert("Please type 'RECEIVED' to confirm.");
+        return;
+    }
+
+    fetch('mark_order_received.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.text())
+    .then(response => {
+        if (response.trim() === 'success') {
+            // Update the order row in DOM
+            const orderRow = document.querySelector(`.order-row[data-id='${orderId}']`);
+            if (orderRow) {
+                const statusBadge = orderRow.querySelector('.status-badge');
+                statusBadge.innerHTML = `<i class='fas fa-circle'></i> Completed`;
+                statusBadge.classList.remove('status-pending', 'status-delivered');
+                statusBadge.classList.add('status-completed');
+            }
+
+            closeReceivedModal(); // Close modal
+        } 
+    })
+    
+});
+
+
+</script>
 </section>
+
+
 
 
         <!-- Cart Section -->
@@ -613,11 +647,7 @@ document.getElementById('cartForm').addEventListener('submit', function(e) {
     </p>
   </div>
 
-  <!-- <div style="text-align: right; margin-bottom: var(--spacing-lg)">
-    <button class="btn btn-primary" onclick="showAddAddressModal()">
-      + Add Address
-    </button>
-  </div> -->
+  
 
   <div class="address-grid">
 
@@ -961,8 +991,59 @@ document.getElementById('cartForm').addEventListener('submit', function(e) {
 
 
     </script>
+
     
-      
+      <script>
+document.getElementById('receivedForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const orderId = document.getElementById('modalOrderId').value;
+    const confirmation = document.getElementById('confirmation').value.trim();
+
+    if (confirmation.toUpperCase() !== 'RECEIVED') {
+        alert("Please type 'RECEIVED' to confirm.");
+        return;
+    }
+
+    const formData = new FormData(this);
+
+    fetch('mark_received.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.text())
+    .then(response => {
+        if (response.trim() === 'success') {
+            alert('Order marked as Completed!');
+
+            // Find the order card by button data-id
+            const orderCard = document.querySelector(`.btn-received[data-id='${orderId}']`)?.closest('.order-card');
+            if (orderCard) {
+                const statusBadge = orderCard.querySelector('.status-badge');
+                if (statusBadge) {
+                    statusBadge.textContent = 'Completed';
+                    statusBadge.classList.remove('pending', 'delivered');
+                    statusBadge.classList.add('completed');
+                }
+
+                // Remove the "Mark as Received" button
+                const receivedBtn = orderCard.querySelector('.btn-received');
+                if (receivedBtn) receivedBtn.remove();
+            }
+
+            closeReceivedModal();
+        } else {
+            alert('Failed to update order.');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Error connecting to server.');
+    });
+});
+</script>
+
+
 
   </body>
 </html>

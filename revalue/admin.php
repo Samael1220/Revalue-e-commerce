@@ -1,3 +1,26 @@
+<?php
+include('db.php');
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['status'])) {
+    $order_id = (int)$_POST['order_id'];
+    $status = $_POST['status'];
+
+    $stmt = $conn->prepare("UPDATE orders SET status = ? WHERE id = ?");
+    $stmt->bind_param("si", $status, $order_id);
+
+    if ($stmt->execute()) {
+        echo "success";
+    } else {
+        echo "error";
+    }
+
+    $stmt->close();
+    $conn->close();
+}
+?>
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -158,153 +181,272 @@
             </div>
 
             <!-- Recent Orders -->
-            <div class="card recent-orders-card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <h2>Recent Orders</h2>
-                        <span class="card-subtitle"><?= $orders->num_rows ?> orders displayed</span>
-                    </div>
-                    <!-- <div class="card-actions">
-                        <button class="btn btn-secondary">
-                            <i class="fas fa-filter"></i> Filter
-                        </button>
-                        <button class="btn btn-primary">
-                            <i class="fas fa-download"></i> Export
-                        </button>
-                    </div> -->
-                </div>
+<!-- Recent Orders -->
+<div class="card recent-orders-card">
+    <div class="card-header">
+        <div class="card-title">
+            <h2>Recent Orders</h2>
+            <span class="card-subtitle"><?= $orders->num_rows ?> orders displayed</span>
+        </div>
+    </div>
 
-                <div class="table-container">
-                    <table class="modern-table">
-                        <thead>
-                            <tr>
-                                <th>Customer</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                                <th>Time</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php while ($row = $orders->fetch_assoc()): ?>
-                                <tr>
-                                    <td>
-                                        <div class="customer-info">
-                                            <div class="customer-avatar"><?= strtoupper(substr($row['Full_name'], 0, 2)) ?></div>
-                                            <span><?= htmlspecialchars($row['Full_name']) ?></span>
-                                        </div>
-                                    </td>
-                                    <td><strong>₱<?= number_format($row['total_amount'], 2) ?></strong></td>
-                                    <td>
-                                        <span class="status-badge <?= $row['status'] === 'Completed' ? 'status-completed' : 'status-pending' ?>">
-                                            <i class="fas fa-circle"></i>
-                                            <?= htmlspecialchars($row['status']) ?>
-                                        </span>
-                                    </td>
-                                    <td><?= date('M d, Y', strtotime($row['order_date'])) ?></td>
-                                    <td><?= date('h:i A', strtotime($row['order_date'])) ?></td>
-                                </tr>
-                            <?php endwhile; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+    <div class="table-container">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php while ($row = $orders->fetch_assoc()): ?>
+                    <?php
+                        // Set badge class based on status
+                        $statusClass = match($row['status']) {
+                        'Pending' => 'status-pending',
+                        'Delivered' => 'status-delivered',
+                        'Completed' => 'status-completed',
+                        default => 'status-other',
+                    };
+                    ?>
+                    <tr>
+                        <td>
+                            <div class="customer-info">
+                                <div class="customer-avatar"><?= strtoupper(substr($row['Full_name'], 0, 2)) ?></div>
+                                <span><?= htmlspecialchars($row['Full_name']) ?></span>
+                            </div>
+                        </td>
+                        <td><strong>₱<?= number_format($row['total_amount'], 2) ?></strong></td>
+                        <td>
+    <span class="status-badge <?= $statusClass ?>" data-id="<?= $row['id'] ?>">
+        <i class="fas fa-circle"></i>
+        <?= htmlspecialchars($row['status']) ?>
+    </span>
+</td>
+                        <td><?= date('M d, Y', strtotime($row['order_date'])) ?></td>
+                        <td><?= date('h:i A', strtotime($row['order_date'])) ?></td>
+                    </tr>
+                <?php endwhile; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- CSS for status badges -->
+<style>
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.status-pending {
+    background-color: #ffc107; /* Yellow */
+    color: #000;
+}
+
+.status-delivered {
+    background-color: #007bff; /* Blue */
+    color: #fff;
+}
+
+.status-other {
+    background-color: #6c757d; /* Gray */
+    color: #fff;
+}
+</style>
         </section>
 
         <!-- Orders Section -->
-        <section class="content-section" id="orders">
-            <div class="section-header">
-                <h2 class="section-title">All Orders</h2>
-                <!-- <div class="section-actions">
-                    <button class="btn btn-secondary">
-                        <i class="fas fa-filter"></i> Filter
-                    </button>
-                    <button class="btn btn-primary">
-                        <i class="fas fa-download"></i> Export
-                    </button>
-                </div> -->
-            </div>
+<section class="content-section" id="orders">
+    <div class="section-header">
+        <h2 class="section-title">All Orders</h2>
+    </div>
 
-            <div class="card">
-                <div class="table-container">
-                    <table class="modern-table">
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>User Name</th>
-                                <th>Email</th>
-                                <th>Address</th>
-                                <th>Products</th>
-                                <th>Total Amount</th>
-                                <th>Status</th>
-                                <th>Order Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            include('db.php');
+    <div class="card">
+        <div class="table-container">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>User Name</th>
+                        <th>Email</th>
+                        <th>Address</th>
+                        <th>Products</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th>Order Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    include('db.php');
 
-                            // Fetch all orders with user info
-                            $query = "
-                                SELECT 
-                                    o.id AS order_id,
-                                    o.total_amount,
-                                    o.status,
-                                    o.order_date,
-                                    o.product_names,
-                                    o.product_images,
-                                    u.Full_name AS user_name,
-                                    u.E_mail AS user_email,
-                                    u.address AS user_address
-                                FROM orders o
-                                JOIN users u ON o.user_id = u.id
-                                ORDER BY o.order_date DESC
-                            ";
+                    // Fetch all orders with user info
+                    $query = "
+                        SELECT 
+                            o.id AS order_id,
+                            o.total_amount,
+                            o.status,
+                            o.order_date,
+                            o.product_names,
+                            o.product_images,
+                            u.Full_name AS user_name,
+                            u.E_mail AS user_email,
+                            u.address AS user_address
+                        FROM orders o
+                        JOIN users u ON o.user_id = u.id
+                        ORDER BY o.order_date DESC
+                    ";
 
-                            $orders = $conn->query($query);
+                    $orders = $conn->query($query);
 
-                            if ($orders && $orders->num_rows > 0) {
-                                while ($order = $orders->fetch_assoc()) {
-                                    $statusClass = strtolower($order['status']) === 'completed' ? 'status-completed' : 'status-pending';
-                                    $statusText = htmlspecialchars($order['status']);
+                    if ($orders && $orders->num_rows > 0) {
+                        while ($order = $orders->fetch_assoc()) {
+                            // Badge class
+                            $statusClass = match(strtolower($order['status'])) {
+                                'pending' => 'status-pending',
+                                'delivered' => 'status-delivered',
+                                'completed' => 'status-completed',
+                                default => 'status-other',
+                            };
+                            $statusText = htmlspecialchars($order['status']);
 
-                                    // Decode product names and images
-                                    $names = json_decode($order['product_names'], true);
-                                    $images = json_decode($order['product_images'], true);
-                                    $productHTML = '<div class="product-list">';
+                            // Decode product names and images
+                            $names = json_decode($order['product_names'], true);
+                            $images = json_decode($order['product_images'], true);
+                            $productHTML = '<div class="product-list">';
 
-                                    if (!empty($names) && !empty($images)) {
-                                        foreach ($names as $idx => $name) {
-                                            $img = isset($images[$idx]) ? $images[$idx] : '';
-                                            $productHTML .= "<div class='product-item'>";
-                                            $productHTML .= "<img src='" . htmlspecialchars($img) . "' alt='" . htmlspecialchars($name) . "'>";
-                                            $productHTML .= "<span>" . htmlspecialchars($name) . "</span>";
-                                            $productHTML .= "</div>";
-                                        }
-                                    }
+                            if (!empty($names) && !empty($images)) {
+                                foreach ($names as $idx => $name) {
+                                    $img = isset($images[$idx]) ? $images[$idx] : '';
+                                    $productHTML .= "<div class='product-item'>";
+                                    $productHTML .= "<img src='" . htmlspecialchars($img) . "' alt='" . htmlspecialchars($name) . "'>";
+                                    $productHTML .= "<span>" . htmlspecialchars($name) . "</span>";
                                     $productHTML .= "</div>";
-
-                                    echo "
-                                    <tr>
-                                        <td><strong>#" . str_pad($order['order_id'], 5, '0', STR_PAD_LEFT) . "</strong></td>
-                                        <td>" . htmlspecialchars($order['user_name']) . "</td>
-                                        <td>" . htmlspecialchars($order['user_email']) . "</td>
-                                        <td><span class='text-muted'>" . htmlspecialchars($order['user_address']) . "</span></td>
-                                        <td>$productHTML</td>
-                                        <td><strong>₱" . number_format($order['total_amount'], 2) . "</strong></td>
-                                        <td><span class='status-badge $statusClass' data-id='{$order['order_id']}'><i class='fas fa-circle'></i> $statusText</span></td>
-                                        <td>" . date('M d, Y h:i A', strtotime($order['order_date'])) . "</td>
-                                    </tr>";
                                 }
-                            } else {
-                                echo "<tr><td colspan='8' class='text-center'>No orders found.</td></tr>";
                             }
-                            ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
+                            $productHTML .= "</div>";
+
+                            echo "
+                            <tr>
+                                <td><strong>#" . str_pad($order['order_id'], 5, '0', STR_PAD_LEFT) . "</strong></td>
+                                <td>" . htmlspecialchars($order['user_name']) . "</td>
+                                <td>" . htmlspecialchars($order['user_email']) . "</td>
+                                <td><span class='text-muted'>" . htmlspecialchars($order['user_address']) . "</span></td>
+                                <td>$productHTML</td>
+                                <td><strong>₱" . number_format($order['total_amount'], 2) . "</strong></td>
+                                <td>
+                                    <span class='status-badge $statusClass' data-id='{$order['order_id']}'>
+                                        <i class='fas fa-circle'></i> $statusText
+                                    </span>
+                                </td>
+                                <td>" . date('M d, Y h:i A', strtotime($order['order_date'])) . "</td>
+                            </tr>";
+                        }
+                    } else {
+                        echo "<tr><td colspan='8' class='text-center'>No orders found.</td></tr>";
+                    }
+                    ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- JS to mark Pending as Delivered or Completed -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const updateRecentOrders = (orderId, newStatus) => {
+        const recentBadge = document.querySelector(`.recent-orders-card .status-badge[data-id='${orderId}']`);
+        if (recentBadge) {
+            recentBadge.innerHTML = `<i class='fas fa-circle'></i> ${newStatus}`;
+            recentBadge.classList.remove("status-pending", "status-delivered", "status-completed");
+            recentBadge.classList.add(
+                newStatus === "Delivered" ? "status-delivered" : "status-completed"
+            );
+            recentBadge.style.cursor = "default"; // lock badge
+        }
+    };
+
+    document.querySelectorAll("#orders .status-badge.status-pending").forEach(badge => {
+        const handleClick = function() {
+            const orderId = this.getAttribute("data-id");
+
+            if (confirm("Mark this order as Delivered?")) {
+                fetch("update_order_status.php", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: "order_id=" + encodeURIComponent(orderId) + "&status=Delivered"
+                })
+                .then(res => res.text())
+                .then(response => {
+                    if (response.trim() === "success") {
+                        this.innerHTML = "<i class='fas fa-circle'></i> Delivered";
+                        this.classList.remove("status-pending");
+                        this.classList.add("status-delivered");
+                        this.style.cursor = "default"; // lock badge
+
+                        // Remove click listener so it can't be clicked again
+                        this.removeEventListener("click", handleClick);
+
+                        updateRecentOrders(orderId, "Delivered");
+                    } else {
+                        alert("Error updating order status.");
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("Error connecting to server.");
+                });
+            }
+        };
+
+        badge.addEventListener("click", handleClick);
+    });
+});
+</script>
+
+<!-- CSS -->
+<style>
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+/* Pending = yellow, clickable */
+.status-pending {
+    background-color: #ffc107;
+    color: #000;
+    cursor: pointer;
+}
+
+/* Delivered = blue, locked */
+.status-delivered {
+    background-color: #188da1ff;
+    color: #fff;
+    cursor: default;
+}
+
+/* Completed = green, locked */
+.status-completed {
+    background-color: #248b3cff;
+    color: #fff;
+    cursor: default;
+}
+</style>
 
         <!-- Products Section -->
         <section class="content-section" id="products">
@@ -401,39 +543,7 @@
         </section>
     </main>
 
-    <!-- JavaScript for status click -->
-    <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        document.querySelectorAll(".status-badge.status-pending").forEach(badge => {
-            badge.addEventListener("click", function() {
-                const orderId = this.getAttribute("data-id");
-                const badgeElement = this;
-
-                if (confirm("Are you sure you want to mark this order as Completed?")) {
-                    fetch("update_order_status.php", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                        body: "order_id=" + encodeURIComponent(orderId)
-                    })
-                    .then(res => res.text())
-                    .then(response => {
-                        if (response.trim() === "success") {
-                            badgeElement.innerHTML = "<i class='fas fa-circle'></i> Completed";
-                            badgeElement.classList.remove("status-pending");
-                            badgeElement.classList.add("status-completed");
-                        } else {
-                            alert("Error updating order status.");
-                        }
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        alert("Error connecting to server.");
-                    });
-                }
-            });
-        });
-    });
-    </script>
+   
 
     <!-- Messaging Logic -->
     <script>

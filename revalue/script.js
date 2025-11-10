@@ -411,30 +411,49 @@ document.addEventListener("keydown", function (e) {
     }
   }
 });
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// Helper to reset button
+function resetButton(button, text = "Add to Cart") {
+  button.disabled = false;
+  button.textContent = text;
+  button.style.opacity = "1";
+  button.style.background = "";
+  button.style.border = "";
+  button.style.color = "";
+  button.style.cursor = "pointer";
+  button.style.animation = "";
+}
 
 // Add to cart function using AJAX
 function addToCart(productId, productName, buttonElement) {
-  // Disable button to prevent multiple clicks
+  // Disable button during request
   buttonElement.disabled = true;
   buttonElement.textContent = "Adding...";
   buttonElement.style.opacity = "0.7";
+  buttonElement.style.pointerEvents = "none";
 
-  // Create form data
-  const formData = new FormData();
-  formData.append("product_id", productId);
+  // Use URLSearchParams to ensure PHP reads POST data
+  const params = new URLSearchParams();
+  params.append("product_id", productId);
 
-  // Make AJAX request
   fetch("cart.php", {
     method: "POST",
-    body: formData,
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: params.toString(),
   })
-    .then((response) => response.json())
+    .then((response) => {
+      if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+      return response.json();
+    })
     .then((data) => {
       if (data.success) {
-        // Show beautiful success toast - matching blueprint style
+        // Update cart count on success
+        updateCartCount();
+
+        // Show success toast
         showToast("success", "Success", data.message);
 
-        // Update button to show "Already in Cart"
+        // Style button as added
         buttonElement.style.background = "hsl(var(--muted))";
         buttonElement.style.color = "hsl(var(--muted-foreground))";
         buttonElement.style.cursor = "not-allowed";
@@ -443,7 +462,7 @@ function addToCart(productId, productName, buttonElement) {
         buttonElement.disabled = true;
         buttonElement.style.opacity = "1";
 
-        // Add a subtle pulse effect
+        // Pulse effect
         buttonElement.style.animation = "pulse 0.6s ease-in-out";
         setTimeout(() => {
           buttonElement.style.animation = "";
@@ -452,21 +471,8 @@ function addToCart(productId, productName, buttonElement) {
         // Show error toast
         showToast("error", "Failed to Add", data.message);
 
-        // Re-enable button with error styling
-        buttonElement.disabled = false;
-        buttonElement.textContent = "Try Again";
-        buttonElement.style.opacity = "1";
-        buttonElement.style.background = "hsl(var(--destructive) / 0.1)";
-        buttonElement.style.border = "1px solid hsl(var(--destructive) / 0.3)";
-        buttonElement.style.color = "hsl(var(--destructive))";
-
-        // Reset button after 2 seconds
-        setTimeout(() => {
-          buttonElement.textContent = "Add to Cart";
-          buttonElement.style.background = "";
-          buttonElement.style.border = "";
-          buttonElement.style.color = "";
-        }, 2000);
+        // Reset button for retry
+        resetButton(buttonElement);
       }
     })
     .catch((error) => {
@@ -476,16 +482,11 @@ function addToCart(productId, productName, buttonElement) {
         "Connection Error",
         "Network error. Please check your connection and try again."
       );
-
-      // Re-enable button
-      buttonElement.disabled = false;
-      buttonElement.textContent = "Add to Cart";
-      buttonElement.style.opacity = "1";
-      buttonElement.style.background = "";
-      buttonElement.style.border = "";
-      buttonElement.style.color = "";
+      resetButton(buttonElement);
     });
 }
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 // Add pulse animation for success feedback
 const style = document.createElement("style");

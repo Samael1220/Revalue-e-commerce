@@ -17,7 +17,7 @@ $stmtAddr->execute();
 $userAddresses = $stmtAddr->get_result()->fetch_assoc();
 $stmtAddr->close();
 
-// Fetch cart items for this user
+// Fetch cart items
 $stmtCart = $conn->prepare("
     SELECT c.id AS cart_id, i.id AS product_id, i.name, i.size, i.price, i.image, c.quantity
     FROM cart c
@@ -45,31 +45,47 @@ if (isset($_POST['confirm_order'])) {
     $conn->begin_transaction();
 
     try {
-        // Prepare product details for JSON storage
-        $productNames = [];
+        // Prepare JSON arrays for orders table
+        $productNames  = [];
         $productImages = [];
-        $productSizes = [];
-        foreach ($selectedItems as $item) {
-            $productNames[] = $item['name'];
-            $productImages[] = $item['image'];
-            $productSizes[] = $item['size'];
-        }
-        $namesJson = json_encode($productNames);
-        $imagesJson = json_encode($productImages);
-        $sizesJson = json_encode($productSizes);
+        $productSizes  = [];
+        $productPrices = [];
 
-        // Insert into orders
+        foreach ($selectedItems as $item) {
+            $productNames[]  = $item['name'];
+            $productImages[] = $item['image'];
+            $productSizes[]  = $item['size'];
+            $productPrices[] = $item['price']; // Store individual prices
+        }
+
+        $namesJson  = json_encode($productNames);
+        $imagesJson = json_encode($productImages);
+        $sizesJson  = json_encode($productSizes);
+        $pricesJson = json_encode($productPrices);
+
+        // Insert into orders table
         $stmtOrder = $conn->prepare("
-            INSERT INTO orders (user_id, total_amount, payment_method, order_date, shipping_address, product_names, product_images, product_sizes)
-            VALUES (?, ?, ?, NOW(), ?, ?, ?, ?)
+            INSERT INTO orders 
+            (user_id, total_amount, payment_method, order_date, shipping_address, product_names, product_images, product_sizes, product_prices)
+            VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?)
         ");
         $paymentMethod = "Cash on Delivery";
-        $stmtOrder->bind_param("idsssss", $user_id, $grandTotal, $paymentMethod, $shippingAddress, $namesJson, $imagesJson, $sizesJson);
+        $stmtOrder->bind_param(
+            "idssssss", // 8 variables
+            $user_id,
+            $grandTotal,
+            $paymentMethod,
+            $shippingAddress,
+            $namesJson,
+            $imagesJson,
+            $sizesJson,
+            $pricesJson
+        );
         $stmtOrder->execute();
         $order_id = $stmtOrder->insert_id;
         $stmtOrder->close();
 
-        // Insert each item into order_items
+        // Insert into order_items table
         $stmtItem = $conn->prepare("
             INSERT INTO order_items (order_id, product_id, product_name, product_image, size, quantity, price)
             VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -89,7 +105,7 @@ if (isset($_POST['confirm_order'])) {
         }
         $stmtItem->close();
 
-        // Delete items from cart
+        // Clear cart
         $stmtDelCart = $conn->prepare("DELETE FROM cart WHERE user_id=?");
         $stmtDelCart->bind_param("i", $user_id);
         $stmtDelCart->execute();
@@ -252,5 +268,36 @@ if (isset($_POST['confirm_order'])) {
     </div>
   </div>
 </div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const selectAddress = document.getElementById("shipping_address");
+  const confirmBtn = document.querySelector(".btn-place-order");
+
+  function checkAddress() {
+    if (!selectAddress || !confirmBtn) return;
+
+    // Disable if no options or selected value is empty
+    if (selectAddress.options.length === 0 || !selectAddress.value.trim()) {
+      confirmBtn.disabled = true;
+      confirmBtn.style.cursor = "not-allowed";
+      confirmBtn.style.opacity = "0.6";
+    } else {
+      confirmBtn.disabled = false;
+      confirmBtn.style.cursor = "pointer";
+      confirmBtn.style.opacity = "1";
+    }
+  }
+
+  // Initial check on page load
+  checkAddress();
+
+  // Update on change
+  selectAddress.addEventListener("change", checkAddress);
+});
+</script>
+
+
 </body>
 </html>

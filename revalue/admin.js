@@ -81,23 +81,6 @@ statCards.forEach((card) => {
 });
 
 // Table row click handling
-const tableRows = document.querySelectorAll(".orders-table tbody tr");
-tableRows.forEach((row) => {
-  row.style.cursor = "pointer";
-  row.addEventListener("click", function () {
-    const product = this.querySelector(".product-cell span").textContent;
-    console.log("Order clicked:", product);
-    // Add order details modal or navigation here
-  });
-
-  row.addEventListener("mouseenter", function () {
-    this.style.backgroundColor = "#f8f9fa";
-  });
-
-  row.addEventListener("mouseleave", function () {
-    this.style.backgroundColor = "";
-  });
-});
 
 // Initialize tooltips for sidebar when not expanded
 const sidebar = document.querySelector(".sidebar");
