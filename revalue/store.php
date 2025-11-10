@@ -163,6 +163,8 @@ $result = $conn->query($sql);
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
+<!-- logo naten -->
+<link rel="icon" type="image/png/webp" href="uploads/logo.webp">
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>RE-VALUE.PH</title>
  <script src="https://unpkg.com/lucide@latest" defer></script>
@@ -194,7 +196,14 @@ $result = $conn->query($sql);
 
     <div class="right">
      
-      <button class="btn btn-outline hv bt" onclick="openCartModal()"><i data-lucide="shopping-cart">Cart</i></button>
+      
+  <button class="btn btn-outline hv bt" onclick="openCartModal()">
+    <i data-lucide="shopping-cart">Cart</i>
+    <!-- wala pang laman php neto -->
+  <span class="cart-badge"><?php echo isset($cart_count) ? $cart_count : '0'; ?></span>
+  </button>
+ 
+
       <?php if(isset($_SESSION['user_id'])): ?>
      <button class="btn btn-outline lcd hv bt" ><a href="userDashboard.php"><i data-lucide="user">User</i> </a></button>
       <form method="POST" style="display:inline;">
@@ -475,7 +484,7 @@ $result = $conn->query($sql);
           <span class="checkmark"></span>
           I agree to the <a href="#" class="terms-link" data-type="terms">Terms and Conditions</a> and <a href="#" class="terms-link" data-type="privacy">Privacy Policy</a>
         </label>
-        <div class="terms-error" id="terms-error"></div>
+        
       </div>
 
       <button class="btn-form" type="submit" name="register" id="register-btn">Create Account</button>

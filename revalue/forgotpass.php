@@ -44,11 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Forgot Password - Re-Value.PH</title>
+<title>RE-VALUE.PH</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-<link rel="stylesheet" href="app.css">
-<link rel="stylesheet" href="specificity.css">
-<link rel="stylesheet" href="user.css">
 <link rel="stylesheet" href="forgotpass.css">
 </head>
 <body>
