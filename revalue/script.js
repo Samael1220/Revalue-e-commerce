@@ -354,11 +354,28 @@ function openCartModal() {
 
 function closeCartModal() {
   const cartModal = document.getElementById("cart-overlay");
+
   if (cartModal) {
     cartModal.style.display = "none";
     document.body.style.overflow = "";
+
+    // Save scroll position so the refresh looks invisible
+    const scrollPos = window.scrollY;
+    sessionStorage.setItem("scrollPos", scrollPos);
+
+    // Refresh page
+    location.reload();
   }
 }
+
+// Restore scroll after refresh
+window.addEventListener("load", () => {
+  const pos = sessionStorage.getItem("scrollPos");
+  if (pos) {
+    window.scrollTo(0, pos);
+    sessionStorage.removeItem("scrollPos");
+  }
+});
 
 function setCheckoutEnabled(enabled, isLoading = false) {
   const checkoutBtn = document.querySelector(".btn-checkout");

@@ -444,7 +444,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </style>
 
         <!-- Notifications Section -->
-        <!-- Notifications Section -->
+<!-- Notifications Section -->
 <section class="content-section" id="notifications">
     <div class="section-header">
         <h2 class="section-title">Notifications</h2>
@@ -453,6 +453,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     <?php
     include('db.php');
+
     $notificationStmt = $conn->prepare("
         SELECT 
             o.id,
@@ -463,6 +464,7 @@ document.addEventListener("DOMContentLoaded", function() {
             o.product_names,
             o.product_images,
             o.product_sizes,
+            o.proof_of_delivery,
             u.Full_name
         FROM orders o
         JOIN users u ON o.user_id = u.id
@@ -478,17 +480,17 @@ document.addEventListener("DOMContentLoaded", function() {
         <?php if ($notifications && $notifications->num_rows > 0): ?>
             <?php while ($notification = $notifications->fetch_assoc()): ?>
                 <?php
+                // Decode JSON fields
                 $items = json_decode($notification['product_names'], true) ?: [];
                 $images = json_decode($notification['product_images'], true) ?: [];
                 $sizes = json_decode($notification['product_sizes'] ?? '[]', true) ?: [];
 
-                $previewItems = array_map(
-                    static fn ($name) => htmlspecialchars($name, ENT_QUOTES, 'UTF-8'),
-                    array_slice($items, 0, 2)
-                );
-                $itemSummary = implode(', ', $previewItems);
-                $remainingCount = max(count($items) - 2, 0);
+                // Determine preview image: proof_of_delivery > first product image > placeholder
+                $previewImage = !empty($notification['proof_of_delivery'])
+                    ? $notification['proof_of_delivery']
+                    : ($images[0] ?? null);
 
+                // Prepare item chips
                 $itemChips = [];
                 foreach ($items as $index => $itemName) {
                     $label = htmlspecialchars($itemName, ENT_QUOTES, 'UTF-8');
@@ -498,11 +500,12 @@ document.addEventListener("DOMContentLoaded", function() {
                     $itemChips[] = $label;
                 }
                 $chipDisplay = array_slice($itemChips, 0, 3);
-                $previewImage = $images[0] ?? null;
 
+                // Encode for data attributes
                 $encodedImages = htmlspecialchars(json_encode($images, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8');
                 $encodedItems = htmlspecialchars(json_encode($items, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8');
                 ?>
+                
                 <article class="notification-card-clean">
                     <!-- Image Section -->
                     <div class="notif-image-section">
@@ -516,6 +519,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                 <i class="fas fa-image"></i>
                             </div>
                         <?php endif; ?>
+
                         <button
                             type="button"
                             class="notif-view-btn"
@@ -556,9 +560,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                 <span class="notif-amount">₱<?php echo number_format((float) $notification['total_amount'], 2); ?></span>
                                 <span class="notif-date"><?php echo date('M d, Y', strtotime($notification['order_date'])); ?></span>
                             </div>
-                            <a class="notif-manage-btn" href="#orders" data-target-order="<?php echo htmlspecialchars($notification['id']); ?>">
-                                Manage <i class="fas fa-arrow-right"></i>
-                            </a>
+                           
                         </div>
                     </div>
                 </article>
@@ -573,14 +575,11 @@ document.addEventListener("DOMContentLoaded", function() {
     </div>
 
     <?php
-    if (isset($notificationStmt)) {
-        $notificationStmt->close();
-    }
-    if (isset($conn)) {
-        $conn->close();
-    }
+    if (isset($notificationStmt)) $notificationStmt->close();
+    if (isset($conn)) $conn->close();
     ?>
 </section>
+
 
 <style>
 

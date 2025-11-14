@@ -17,6 +17,22 @@ $stmtAddr->execute();
 $userAddresses = $stmtAddr->get_result()->fetch_assoc();
 $stmtAddr->close();
 
+// Handle NULL correctly before converting
+$addr1 = strtolower(trim($userAddresses['address'] ?? ""));
+$addr2 = strtolower(trim($userAddresses['address2'] ?? ""));
+$addr3 = strtolower(trim($userAddresses['address3'] ?? ""));
+
+// Block checkout if all addresses are invalid
+if (
+    ($addr1 === "not provided" || $addr1 === "") &&
+    ($addr2 === "" || $addr2 === "not provided") &&
+    ($addr3 === "" || $addr3 === "not provided")
+) {
+    $_SESSION['order_error'] = "You must update your address before checking out.";
+    header("Location: userDashboard.php");
+    exit();
+}
+
 // Fetch cart items
 $stmtCart = $conn->prepare("
     SELECT c.id AS cart_id, i.id AS product_id, i.name, i.size, i.price, i.image, c.quantity

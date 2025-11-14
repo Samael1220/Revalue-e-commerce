@@ -185,6 +185,49 @@ $allOrdersQuery->bind_param("i", $user_id);
 $allOrdersQuery->execute();
 $allOrders = $allOrdersQuery->get_result();
 $allOrdersQuery->close();
+
+
+if (isset($_POST['mark_received'])) {
+    $orderId = intval($_POST['order_id']);
+    $confirmation = trim($_POST['confirmation']);
+
+    // Check confirmation text
+    if (strtoupper($confirmation) !== 'RECEIVED') {
+        die("Please type 'RECEIVED' to confirm.");
+    }
+
+    $proofPath = null;
+
+    // Handle optional image upload
+    if (isset($_FILES['productImage']) && $_FILES['productImage']['error'] === UPLOAD_ERR_OK) {
+        $uploadDir = 'uploads/proofs/'; // make sure folder exists
+        $filename = 'order_' . $orderId . '_' . time() . '_' . basename($_FILES['productImage']['name']);
+        $targetFile = $uploadDir . $filename;
+
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        if (in_array($_FILES['productImage']['type'], $allowedTypes)) {
+            if (move_uploaded_file($_FILES['productImage']['tmp_name'], $targetFile)) {
+                $proofPath = $targetFile;
+            } else {
+                die('Failed to upload image.');
+            }
+        } else {
+            die('Invalid image type.');
+        }
+    }
+
+    // Update the order
+    $stmt = $conn->prepare("UPDATE orders SET status='Received', proof_of_delivery=? WHERE id=?");
+    $stmt->bind_param("si", $proofPath, $orderId);
+    $stmt->execute();
+    $stmt->close();
+
+    echo "Order #$orderId marked as received.";
+}
+
+
+
+
 ?>
 
 
@@ -845,12 +888,7 @@ document.getElementById('cartForm').addEventListener('submit', function(e) {
         margin-top: var(--spacing-2xl);
       "
     >
-      <button
-        type="reset"
-        class="btn btn-secondary"
-      >
-        Reset
-      </button>
+      <button type="button" class="btn btn-secondary" onclick="clearPersonalDetailsForm()">Reset</button>
       <button type="submit" class="btn btn-primary">
         Save Changes
       </button>
@@ -1099,6 +1137,24 @@ document.getElementById('cartForm').addEventListener('submit', function(e) {
           });
         }
       });
+
+      function clearPersonalDetailsForm() {
+    const form = document.getElementById('personalDetailsForm');
+    if (!form) return;
+
+    // Loop through all input and select elements
+    form.querySelectorAll('input, select, textarea').forEach(el => {
+        if (el.type === 'checkbox' || el.type === 'radio') {
+            el.checked = false;
+        } else {
+            el.value = '';
+        }
+    });
+}
+
+
+
+
 </script>
 
 
