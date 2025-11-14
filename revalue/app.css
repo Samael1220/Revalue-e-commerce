@@ -11,6 +11,8 @@
   --border: 35 20% 88%;
   --input: 35 20% 88%;
   --ring: 150 40% 60%;
+  --primary2: hsl(150, 40%, 60%);
+  --muted2: hsl(35, 20%, 95%);
 
   /* Semantic */
   --primary: 150 40% 60%;
@@ -99,6 +101,27 @@
 *::after {
   box-sizing: border-box;
 }
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary2) var(--muted2);
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--muted2);
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--primary2);
+  border-radius: 4px;
+}
+
 html,
 body {
   height: 100%;
@@ -294,7 +317,6 @@ header input[type="text"] {
   padding: 0.5rem;
 }
 
-/* ===== Next: css/style.css ===== */
 html,
 body {
   height: 100%;
@@ -1093,4 +1115,248 @@ a:focus-visible {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
+}
+
+/* =========================================
+   Confirmation Modal (Store page)
+   ========================================= */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(17, 24, 39, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 11000;
+  padding: 1.5rem;
+}
+
+.confirm-overlay.show {
+  display: flex;
+}
+
+.confirm-dialog {
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border-radius: 1rem;
+  width: min(420px, 100%);
+  box-shadow: 0 25px 65px rgba(15, 23, 42, 0.25);
+  border: 1px solid hsl(var(--border));
+  overflow: hidden;
+  animation: modalSlideIn 0.24s ease-out;
+}
+
+.confirm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem 0.75rem;
+}
+
+.confirm-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.confirm-close {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  border-radius: 50%;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-smooth);
+}
+
+.confirm-close:hover,
+.confirm-close:focus-visible {
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  outline: none;
+}
+
+.confirm-body {
+  padding: 0 1.5rem 1.25rem;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.6;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  padding: 0 1.5rem 1.5rem;
+}
+
+.confirm-btn {
+  min-width: 120px;
+  padding: 0.65rem 1.25rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  border: 1px solid transparent;
+}
+
+.confirm-btn.confirm-cancel {
+  background: transparent;
+  border-color: hsl(var(--border));
+  color: hsl(var(--muted-foreground));
+}
+
+.confirm-btn.confirm-cancel:hover,
+.confirm-btn.confirm-cancel:focus-visible {
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  outline: none;
+}
+
+.confirm-btn.confirm-confirm {
+  background: hsl(var(--sage));
+  color: hsl(var(--sage-foreground));
+  box-shadow: 0 10px 22px rgba(46, 125, 50, 0.18);
+}
+
+.confirm-btn.confirm-confirm:hover,
+.confirm-btn.confirm-confirm:focus-visible {
+  filter: brightness(0.95);
+  outline: none;
+}
+
+@media (max-width: 540px) {
+  .confirm-dialog {
+    padding-bottom: 0.75rem;
+  }
+
+  .confirm-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .confirm-btn {
+    width: 100%;
+  }
+}
+
+/* app widget */
+.chat-fab {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 9999;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #15803d;
+  color: #fff;
+  border: none;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.chat-fab:hover {
+  background: #166534;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.24);
+}
+.chat-widget {
+  position: fixed;
+  right: 20px;
+  bottom: 88px;
+  width: 320px;
+  max-height: 60vh;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(8px);
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+}
+.chat-widget.open {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
+}
+.chat-header {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+}
+.chat-messages {
+  padding: 12px;
+  height: 300px;
+  overflow: auto;
+  background: #f8fafc;
+}
+.msg {
+  max-width: 75%;
+  margin: 6px 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.3;
+}
+.msg.sent {
+  margin-left: auto;
+  background: #dcfce7;
+  color: #065f46;
+}
+.msg.received {
+  margin-right: auto;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  color: #111827;
+}
+.chat-input {
+  display: flex;
+  gap: 6px;
+  padding: 10px;
+  border-top: 1px solid #e5e7eb;
+  background: #fff;
+}
+.chat-input input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.chat-input input:focus {
+  outline: none;
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
+}
+.chat-input button {
+  padding: 10px 12px;
+  background: #16a34a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.chat-input button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(22, 163, 74, 0.35);
 }

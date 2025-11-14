@@ -551,7 +551,7 @@ body {
   padding: 10px 20px;
   border-radius: 10px;
   color: white;
-  background: #446cef;
+  background: #2ea061ce;
   border: none;
   font-weight: 600;
   font-size: 1rem;
@@ -559,7 +559,7 @@ body {
 }
 
 .btn-pay:hover {
-  background: #3450d3;
+  background: #227849ce;
   transform: translateY(-2px);
 }
 
@@ -1381,7 +1381,7 @@ body {
   z-index: 1000;
 }
 
-.modal {
+.modal-overlay .modal {
   background: white;
   border-radius: 12px;
   width: 90%;
@@ -1467,8 +1467,8 @@ body {
 
 .modal-body textarea:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: hsl(var(--sage));
+  box-shadow: 0 0 0 3px rgba(59, 246, 199, 0.1);
 }
 
 .modal-actions {
@@ -1497,12 +1497,12 @@ body {
 }
 
 .modal-actions .btn-primary {
-  background: #3b82f6;
+  background: #2ea061ce;
   color: white;
 }
 
 .modal-actions .btn-primary:hover {
-  background: #2563eb;
+  background: #267c4dce;
 }
 
 /* Mobile responsiveness */
@@ -1555,6 +1555,8 @@ body {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   border: 1px solid #e0e0e0;
   transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column; /* allow bottom alignment */
 }
 
 .order-card:hover {
@@ -1689,6 +1691,7 @@ body {
   margin-top: 15px;
   padding-top: 15px;
   border-top: 1px solid #f0f0f0;
+  margin-top: auto;
 }
 
 .btn-received {
@@ -1744,8 +1747,8 @@ body {
   color: #ccc;
 }
 
-/* Modal Styles */
-.modal {
+/* Modal Styles - for received modal only */
+#receivedModal.modal {
   display: none;
   position: fixed;
   z-index: 1000;
@@ -1856,6 +1859,7 @@ body {
   border-radius: 6px;
   cursor: pointer;
   color: #333;
+  transition: all 0.3s ease;
 }
 
 .btn-confirm {
@@ -1867,8 +1871,13 @@ body {
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
+  transition: all 0.3s ease;
 }
 
 .btn-confirm:hover {
   background: #218838;
+}
+
+.btn-cancel:hover {
+  background: rgb(234, 231, 231);
 }

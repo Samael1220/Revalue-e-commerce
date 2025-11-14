@@ -57,6 +57,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
                 <div class="nav-indicator"></div>
             </div>
 
+            <div class="nav-item" data-section="notifications">
+                <i class="fas fa-bell"></i>
+                <span class="nav-text">Notifications</span>
+                <div class="nav-indicator"></div>
+            </div>
+
             <div class="nav-item" data-section="products">
                 <i class="fas fa-box"></i>
                 <span class="nav-text">Products</span>
@@ -74,6 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
                 <i class="fas fa-right-from-bracket"></i>
                 <span class="nav-text">Logout</span>
                 <div class="nav-indicator"></div>
+                
             </div>
         </nav>
     </aside>
@@ -123,62 +130,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
             ");
             ?>
 
-            <!-- Stats Grid -->
-            <div class="stats-grid">
-                <div class="stat-card completed-card">
-                    <div class="stat-content">
-                        <div class="stat-header">
-                            <div class="stat-icon">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            
-                        </div>
-                        <div class="stat-info">
-                            <h3 class="stat-value"><?= $completedOrders ?></h3>
-                            <p class="stat-label">Orders Completed</p>
-                        </div>
-                    </div>
-                    <div class="stat-chart">
-                        <div class="mini-chart"></div>
-                    </div>
-                </div>
-
-                <div class="stat-card pending-card">
-                    <div class="stat-content">
-                        <div class="stat-header">
-                            <div class="stat-icon">
-                                <i class="fas fa-clock"></i>
-                            </div>
-                           
-                        </div>
-                        <div class="stat-info">
-                            <h3 class="stat-value"><?= $pendingOrders ?></h3>
-                            <p class="stat-label">Orders Pending</p>
-                        </div>
-                    </div>
-                    <div class="stat-chart">
-                        <div class="mini-chart"></div>
-                    </div>
-                </div>
-
-                <div class="stat-card users-card">
-                    <div class="stat-content">
-                        <div class="stat-header">
-                            <div class="stat-icon">
-                                <i class="fas fa-users"></i>
-                            </div>
-                            
-                        </div>
-                        <div class="stat-info">
-                            <h3 class="stat-value"><?= $totalUsers ?></h3>
-                            <p class="stat-label">Total Users</p>
-                        </div>
-                    </div>
-                    <div class="stat-chart">
-                        <div class="mini-chart"></div>
-                    </div>
+           <!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card completed-card">
+        <div class="stat-content">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
                 </div>
             </div>
+            <div class="stat-info">
+                <h3 class="stat-value"><?= $completedOrders ?></h3>
+                <p class="stat-label">Orders Completed</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card pending-card">
+        <div class="stat-content">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+            <div class="stat-info">
+                <h3 class="stat-value"><?= $pendingOrders ?></h3>
+                <p class="stat-label">Orders Pending</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card users-card">
+        <div class="stat-content">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+            <div class="stat-info">
+                <h3 class="stat-value"><?= $totalUsers ?></h3>
+                <p class="stat-label">Total Users</p>
+            </div>
+        </div>
+    </div>
+</div>
 
             <!-- Recent Orders -->
 <!-- Recent Orders -->
@@ -448,6 +443,163 @@ document.addEventListener("DOMContentLoaded", function() {
 }
 </style>
 
+        <!-- Notifications Section -->
+        <!-- Notifications Section -->
+<section class="content-section" id="notifications">
+    <div class="section-header">
+        <h2 class="section-title">Notifications</h2>
+        <p class="section-subtitle">Recent confirmations from customers who have marked their orders as received.</p>
+    </div>
+
+    <?php
+    include('db.php');
+    $notificationStmt = $conn->prepare("
+        SELECT 
+            o.id,
+            o.user_id,
+            o.total_amount,
+            o.order_date,
+            o.status,
+            o.product_names,
+            o.product_images,
+            o.product_sizes,
+            u.Full_name
+        FROM orders o
+        JOIN users u ON o.user_id = u.id
+        WHERE o.status = 'Completed'
+        ORDER BY o.order_date DESC
+        LIMIT 12
+    ");
+    $notificationStmt->execute();
+    $notifications = $notificationStmt->get_result();
+    ?>
+
+    <div class="notification-grid">
+        <?php if ($notifications && $notifications->num_rows > 0): ?>
+            <?php while ($notification = $notifications->fetch_assoc()): ?>
+                <?php
+                $items = json_decode($notification['product_names'], true) ?: [];
+                $images = json_decode($notification['product_images'], true) ?: [];
+                $sizes = json_decode($notification['product_sizes'] ?? '[]', true) ?: [];
+
+                $previewItems = array_map(
+                    static fn ($name) => htmlspecialchars($name, ENT_QUOTES, 'UTF-8'),
+                    array_slice($items, 0, 2)
+                );
+                $itemSummary = implode(', ', $previewItems);
+                $remainingCount = max(count($items) - 2, 0);
+
+                $itemChips = [];
+                foreach ($items as $index => $itemName) {
+                    $label = htmlspecialchars($itemName, ENT_QUOTES, 'UTF-8');
+                    if (!empty($sizes[$index])) {
+                        $label .= ' · Size ' . htmlspecialchars($sizes[$index], ENT_QUOTES, 'UTF-8');
+                    }
+                    $itemChips[] = $label;
+                }
+                $chipDisplay = array_slice($itemChips, 0, 3);
+                $previewImage = $images[0] ?? null;
+
+                $encodedImages = htmlspecialchars(json_encode($images, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8');
+                $encodedItems = htmlspecialchars(json_encode($items, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8');
+                ?>
+                <article class="notification-card-clean">
+                    <!-- Image Section -->
+                    <div class="notif-image-section">
+                        <?php if ($previewImage): ?>
+                            <img src="<?php echo htmlspecialchars($previewImage, ENT_QUOTES, 'UTF-8'); ?>" 
+                                 alt="Order preview" 
+                                 class="notif-image" 
+                                 loading="lazy" />
+                        <?php else: ?>
+                            <div class="notif-image-placeholder">
+                                <i class="fas fa-image"></i>
+                            </div>
+                        <?php endif; ?>
+                        <button
+                            type="button"
+                            class="notif-view-btn"
+                            data-images="<?php echo $encodedImages; ?>"
+                            data-order="<?php echo htmlspecialchars($notification['id']); ?>"
+                            data-customer="<?php echo htmlspecialchars($notification['Full_name'], ENT_QUOTES, 'UTF-8'); ?>"
+                            data-items="<?php echo $encodedItems; ?>"
+                        >
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+
+                    <!-- Content Section -->
+                    <div class="notif-content-section">
+                        <div class="notif-header">
+                            <div>
+                                <h3 class="notif-order-id">Order #<?php echo str_pad($notification['id'], 5, '0', STR_PAD_LEFT); ?></h3>
+                                <p class="notif-customer"><?php echo htmlspecialchars($notification['Full_name'], ENT_QUOTES, 'UTF-8'); ?></p>
+                            </div>
+                            <span class="notif-status-badge">
+                                <i class="fas fa-check-circle"></i>
+                            </span>
+                        </div>
+
+                        <div class="notif-items">
+                            <?php if (!empty($chipDisplay)): ?>
+                                <?php foreach (array_slice($chipDisplay, 0, 2) as $chip): ?>
+                                    <span class="notif-item-tag"><?php echo $chip; ?></span>
+                                <?php endforeach; ?>
+                                <?php if (count($items) > 2): ?>
+                                    <span class="notif-item-more">+<?php echo count($items) - 2; ?> more</span>
+                                <?php endif; ?>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="notif-footer">
+                            <div class="notif-info">
+                                <span class="notif-amount">₱<?php echo number_format((float) $notification['total_amount'], 2); ?></span>
+                                <span class="notif-date"><?php echo date('M d, Y', strtotime($notification['order_date'])); ?></span>
+                            </div>
+                            <a class="notif-manage-btn" href="#orders" data-target-order="<?php echo htmlspecialchars($notification['id']); ?>">
+                                Manage <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            <?php endwhile; ?>
+        <?php else: ?>
+            <div class="notification-empty">
+                <i class="fas fa-bell-slash"></i>
+                <h3>No notifications yet</h3>
+                <p>Completed orders will appear here once customers confirm receipt.</p>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <?php
+    if (isset($notificationStmt)) {
+        $notificationStmt->close();
+    }
+    if (isset($conn)) {
+        $conn->close();
+    }
+    ?>
+</section>
+
+<style>
+
+</style>
+        <div id="notification-preview-modal" class="notification-preview-modal" aria-hidden="true">
+            <div class="notification-preview-dialog" role="dialog" aria-modal="true">
+                <button type="button" class="notification-preview-close" aria-label="Close preview">&times;</button>
+                <div class="notification-preview-header">
+                    <h3 id="notification-preview-title">Order Photos</h3>
+                    <p class="notification-preview-subtitle"></p>
+                </div>
+                <div class="notification-preview-gallery" id="notification-preview-gallery"></div>
+                <div class="notification-preview-empty" id="notification-preview-empty">
+                    <i class="fas fa-image"></i>
+                    <p>No confirmation photos were provided for this order.</p>
+                </div>
+            </div>
+        </div>
+
         <!-- Products Section -->
         <section class="content-section" id="products">
             <div class="section-header">
@@ -640,5 +792,8 @@ document.addEventListener("DOMContentLoaded", function() {
         setInterval(fetchMessages, 3000);
     })();
     </script>
+
+    <div class="toast-overlay" id="toastOverlay"></div>
+    <div class="toast-container" id="toastContainer"></div>
 </body>
 </html>

@@ -2,6 +2,28 @@
   --bg: #f9f4ef;
   --text: #2f2f2f;
   --accent: #63f1b3;
+  --primary2: hsl(150, 40%, 60%);
+  --muted2: hsl(35, 20%, 95%);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary2) var(--muted2);
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--muted2);
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--primary2);
+  border-radius: 4px;
 }
 
 body {

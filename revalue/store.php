@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
     $confirm = $_POST['confirm-pass'];
 
     if ($password !== $confirm) {
-        $_SESSION['registerError'] = "❌ Passwords do not match!";
+        $_SESSION['registerError'] = "Passwords do not match!";
         header("Location: store.php");
         exit;
     } else {
@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
         $checkResult = $check->get_result();
 
         if ($checkResult->num_rows > 0) {
-            $_SESSION['registerError'] = "❌ This email is already registered!";
+            $_SESSION['registerError'] = "This email is already registered!";
             header("Location: store.php");
             exit;
         } else {
@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
             $stmt->bind_param("ssssssss", $fullname, $email, $hashedPassword, $fname, $lname, $number, $address, $country);
 
             if ($stmt->execute()) {
-                $_SESSION['registerSuccess'] = "✅ Registered successfully!";
+                $_SESSION['registerSuccess'] = " Registered successfully!";
                 header("Location: store.php");
                 exit;
             } else {
@@ -555,6 +555,22 @@ if (isset($_SESSION['user_id'])) {
 </div>
 <?php endif; ?>
 
+<div id="confirm-overlay" class="confirm-overlay" aria-hidden="true">
+  <div class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+    <div class="confirm-header">
+      <h3 id="confirm-title" class="confirm-title">Confirm action</h3>
+      <button type="button" class="confirm-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="confirm-body">
+      <p class="confirm-message">Are you sure you want to continue?</p>
+    </div>
+    <div class="confirm-actions">
+      <button type="button" class="confirm-btn confirm-cancel">Cancel</button>
+      <button type="button" class="confirm-btn confirm-confirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
 </main>
 
 <div id="toast-container"></div>
@@ -573,20 +589,7 @@ if (isset($_SESSION['user_id'])) {
 <?php if(isset($_SESSION['user_id'])): ?>
 <!-- Floating Chat Button + Widget for messaging Admin -->
 <style>
-.chat-fab{position:fixed;right:20px;bottom:20px;z-index:9999;width:56px;height:56px;border-radius:50%;background:#15803d;color:#fff;border:none;box-shadow:0 8px 20px rgba(0,0,0,.2);cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
-.chat-fab:hover{background:#166534;transform:translateY(-1px);box-shadow:0 12px 24px rgba(0,0,0,.24)}
-.chat-widget{position:fixed;right:20px;bottom:88px;width:320px;max-height:60vh;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.15);display:flex;flex-direction:column;overflow:hidden;z-index:9999;opacity:0;transform:translateY(8px);visibility:hidden;pointer-events:none;transition:opacity .18s ease,transform .18s ease,visibility .18s ease}
-.chat-widget.open{opacity:1;transform:translateY(0);visibility:visible;pointer-events:auto}
-.chat-header{padding:12px 14px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;background:#f8fafc}
-.chat-messages{padding:12px;height:300px;overflow:auto;background:#f8fafc}
-.msg{max-width:75%;margin:6px 0;padding:8px 10px;border-radius:10px;font-size:14px;line-height:1.3}
-.msg.sent{margin-left:auto;background:#dcfce7;color:#065f46}
-.msg.received{margin-right:auto;background:#fff;border:1px solid #e5e7eb;color:#111827}
-.chat-input{display:flex;gap:6px;padding:10px;border-top:1px solid #e5e7eb;background:#fff}
-.chat-input input{flex:1;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;transition:border-color .15s ease,box-shadow .15s ease}
-.chat-input input:focus{outline:none;border-color:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.15)}
-.chat-input button{padding:10px 12px;background:#16a34a;color:#fff;border:none;border-radius:8px;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
-.chat-input button:hover{transform:translateY(-1px);box-shadow:0 8px 16px rgba(22,163,74,.35)}
+
 </style>
 
 <button class="chat-fab" id="open-user-chat" aria-label="Chat"><i class="fa-solid fa-message"></i></button>
@@ -776,7 +779,8 @@ function updateCartCount() {
 }
 </script>
 
-
+<div class="toast-overlay" id="toastOverlay"></div>
+    <div class="toast-container" id="toastContainer"></div>
 
 </body>
 </html>
