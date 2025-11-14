@@ -139,7 +139,7 @@ $conn->close();
                     <span class="toast-icon">${icon}</span>
                     <span class="toast-message">${message}</span>
                 </div>
-                <button class="toast-close" onclick="closeToast(this)">×</button>
+                <button class="toast-close" onclick="closeToast(this)"></button>
             `;
             
             toastContainer.appendChild(toast);
@@ -249,20 +249,7 @@ $conn->close();
             
             // Show loading toast
             showToast('Adding product...', 'info');
-        });
-
-        // Field validation on blur
-        document.getElementById('name').addEventListener('blur', function() {
-            if (this.value.trim().length < 2) {
-                showToast('Product name must be at least 2 characters', 'warning');
-            }
-        });
-
-        document.getElementById('price').addEventListener('blur', function() {
-            if (this.value && this.value <= 0) {
-                showToast('Price must be greater than 0', 'warning');
-            }
-        });
+        }); 
     </script>
 </body>
 </html>

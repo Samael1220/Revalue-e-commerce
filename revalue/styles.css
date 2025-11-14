@@ -25,6 +25,8 @@
   --accent-foreground: 25 20% 15%;
   --destructive: 0 70% 65%;
   --destructive-foreground: 0 0% 100%;
+  --primary2: hsl(150, 40%, 60%);
+  --muted2: hsl(35, 20%, 95%);
 
   /* Brand Colors */
   --sage: 120 25% 75%;
@@ -93,6 +95,26 @@
   padding: 0;
   box-sizing: border-box;
   scroll-behavior: smooth;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary2) var(--muted2);
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--muted2);
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--primary2);
+  border-radius: 4px;
 }
 
 body {

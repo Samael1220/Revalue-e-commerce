@@ -10,6 +10,106 @@ function closeModal() {
   document.body.style.overflow = "";
 }
 
+const confirmModalState = {
+  overlay: null,
+  titleEl: null,
+  messageEl: null,
+  confirmBtn: null,
+  cancelBtn: null,
+  closeBtn: null,
+  onConfirm: null,
+};
+
+document.addEventListener("DOMContentLoaded", function () {
+  const overlay = document.getElementById("confirm-overlay");
+  if (!overlay) {
+    return;
+  }
+
+  confirmModalState.overlay = overlay;
+  confirmModalState.titleEl = overlay.querySelector(".confirm-title");
+  confirmModalState.messageEl = overlay.querySelector(".confirm-message");
+  confirmModalState.confirmBtn = overlay.querySelector(".confirm-confirm");
+  confirmModalState.cancelBtn = overlay.querySelector(".confirm-cancel");
+  confirmModalState.closeBtn = overlay.querySelector(".confirm-close");
+
+  const closeHandler = () => closeConfirmModal();
+
+  if (confirmModalState.cancelBtn) {
+    confirmModalState.cancelBtn.addEventListener("click", closeHandler);
+  }
+
+  if (confirmModalState.closeBtn) {
+    confirmModalState.closeBtn.addEventListener("click", closeHandler);
+  }
+
+  if (confirmModalState.confirmBtn) {
+    confirmModalState.confirmBtn.addEventListener("click", () => {
+      const handler = confirmModalState.onConfirm;
+      closeConfirmModal();
+      if (typeof handler === "function") {
+        handler();
+      }
+    });
+  }
+
+  overlay.addEventListener("click", function (event) {
+    if (event.target === overlay) {
+      closeConfirmModal();
+    }
+  });
+});
+
+function openConfirmModal({
+  title = "Confirm",
+  message = "Are you sure you want to continue?",
+  confirmText = "Confirm",
+  cancelText = "Cancel",
+  onConfirm,
+} = {}) {
+  if (!confirmModalState.overlay) {
+    if (typeof onConfirm === "function") {
+      onConfirm();
+    }
+    return;
+  }
+
+  if (confirmModalState.titleEl) {
+    confirmModalState.titleEl.textContent = title;
+  }
+  if (confirmModalState.messageEl) {
+    confirmModalState.messageEl.textContent = message;
+  }
+  if (confirmModalState.confirmBtn) {
+    confirmModalState.confirmBtn.textContent = confirmText;
+    confirmModalState.confirmBtn.disabled = false;
+  }
+  if (confirmModalState.cancelBtn) {
+    confirmModalState.cancelBtn.textContent = cancelText;
+  }
+
+  confirmModalState.onConfirm = onConfirm;
+
+  confirmModalState.overlay.classList.add("show");
+  confirmModalState.overlay.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+
+  if (confirmModalState.confirmBtn) {
+    setTimeout(() => confirmModalState.confirmBtn.focus(), 50);
+  }
+}
+
+function closeConfirmModal() {
+  if (!confirmModalState.overlay) {
+    return;
+  }
+
+  confirmModalState.overlay.classList.remove("show");
+  confirmModalState.overlay.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+  confirmModalState.onConfirm = null;
+}
+
 // Open modal on page load
 document.addEventListener("DOMContentLoaded", function () {
   const authOverlayInit = document.getElementById("auth-overlay");
@@ -246,6 +346,8 @@ function openCartModal() {
   if (cartModal) {
     cartModal.style.display = "flex";
     document.body.style.overflow = "hidden";
+    // Disable checkout while loading
+    setCheckoutEnabled(false, true);
     loadCartItems();
   }
 }
@@ -255,6 +357,25 @@ function closeCartModal() {
   if (cartModal) {
     cartModal.style.display = "none";
     document.body.style.overflow = "";
+  }
+}
+
+function setCheckoutEnabled(enabled, isLoading = false) {
+  const checkoutBtn = document.querySelector(".btn-checkout");
+  if (!checkoutBtn) return;
+
+  if (enabled) {
+    checkoutBtn.disabled = false;
+    checkoutBtn.style.cursor = "pointer";
+    checkoutBtn.style.opacity = "1";
+    checkoutBtn.innerHTML = "Proceed to Checkout";
+  } else {
+    checkoutBtn.disabled = true;
+    checkoutBtn.style.cursor = "not-allowed";
+    checkoutBtn.style.opacity = "0.6";
+    checkoutBtn.innerHTML = isLoading
+      ? 'Loading... <span class="dot-red"></span>'
+      : 'Cart is empty <span class="dot-red"></span>';
   }
 }
 
@@ -276,12 +397,14 @@ function loadCartItems() {
       } else {
         cartItems.innerHTML =
           '<div class="cart-empty"><p>Failed to load cart items.</p></div>';
+        setCheckoutEnabled(false);
       }
     })
     .catch((error) => {
       console.error("Error loading cart:", error);
       cartItems.innerHTML =
         '<div class="cart-empty"><p>Error loading cart items.</p></div>';
+      setCheckoutEnabled(false);
     });
 }
 
@@ -293,6 +416,7 @@ function displayCartItems(items, total) {
     cartItems.innerHTML =
       '<div class="cart-empty"><p>Your cart is empty.</p></div>';
     cartTotal.textContent = "0";
+    setCheckoutEnabled(false);
     return;
   }
 
@@ -318,13 +442,20 @@ function displayCartItems(items, total) {
 
   cartItems.innerHTML = html;
   cartTotal.textContent = total.toFixed(2);
+  setCheckoutEnabled(true);
 }
 
 function removeFromCart(cartId) {
-  if (!confirm("Are you sure you want to remove this item from your cart?")) {
-    return;
-  }
+  openConfirmModal({
+    title: "Remove item",
+    message: "Are you sure you want to remove this item from your cart?",
+    confirmText: "Remove",
+    cancelText: "Keep item",
+    onConfirm: () => executeCartRemoval(cartId),
+  });
+}
 
+function executeCartRemoval(cartId) {
   fetch("remove_cart.php", {
     method: "POST",
     headers: {

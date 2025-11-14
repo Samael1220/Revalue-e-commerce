@@ -257,7 +257,7 @@ if (isset($_POST['confirm_order'])) {
           </div>
 
           <div class="form-actions">
-            <button type="submit" name="confirm_order" class="btn-place-order" onclick="return confirm('Are you sure you want to place this order?');">
+            <button type="submit" name="confirm_order" class="btn-place-order">
               <span class="btn-text">Confirm Order</span>
              
             </button>
@@ -269,33 +269,125 @@ if (isset($_POST['confirm_order'])) {
   </div>
 </div>
 
+<!-- Lightweight Confirmation Modal (scoped to this page) -->
+<div id="cr-confirm-overlay" class="cr-confirm-overlay" aria-hidden="true" style="display:none;">
+  <div class="cr-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="cr-confirm-title">
+    <div class="cr-confirm-header">
+      <h3 id="cr-confirm-title" class="cr-confirm-title">Place Order</h3>
+      <button type="button" class="cr-confirm-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="cr-confirm-body">
+      <p class="cr-confirm-message">Are you sure you want to place this order?</p>
+    </div>
+    <div class="cr-confirm-actions">
+      <button type="button" class="cr-confirm-btn cr-confirm-cancel">Cancel</button>
+      <button type="button" class="cr-confirm-btn cr-confirm-confirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Minimal, scoped styles to avoid conflicts */
+  .cr-confirm-overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.5); z-index: 9999; padding: 16px; }
+  .cr-confirm-overlay.show { display: flex; }
+  .cr-confirm-dialog { background: #fff; color: #111; border-radius: 12px; width: min(420px, 100%); box-shadow: 0 20px 50px rgba(0,0,0,.25); overflow: hidden; }
+  .cr-confirm-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid #eee; }
+  .cr-confirm-title { margin: 0; font-size: 1.1rem; font-weight: 700; }
+  .cr-confirm-close { background: transparent; border: none; font-size: 22px; line-height: 1; cursor: pointer; color: #666; border-radius: 6px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+  .cr-confirm-close:hover { background: #f3f4f6; color: #111; }
+  .cr-confirm-body { padding: 14px 18px; color: #374151; }
+  .cr-confirm-actions { display: flex; gap: 10px; justify-content: flex-end; padding: 0 18px 16px; }
+  .cr-confirm-btn { min-width: 110px; padding: 10px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; border: 1px solid transparent; }
+  .cr-confirm-cancel { background: #fff; color: #374151; border-color: #e5e7eb; }
+  .cr-confirm-cancel:hover { background: #f3f4f6; }
+  .cr-confirm-confirm { background: #28a745; color: #fff; }
+  .cr-confirm-confirm:hover { filter: brightness(0.95); }
+</style>
+
+<style>
+  /* Enhancements: transitions and polish for confirmation modal */
+  .cr-confirm-overlay { opacity: 0; pointer-events: none; transition: opacity 180ms ease; }
+  .cr-confirm-overlay.show { opacity: 1; pointer-events: auto; }
+
+  .cr-confirm-dialog { 
+    transform: translateY(10px) scale(0.985); 
+    opacity: 0; 
+    transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease, box-shadow 220ms ease; 
+  }
+  .cr-confirm-overlay.show .cr-confirm-dialog { transform: translateY(0) scale(1); opacity: 1; }
+
+  .cr-confirm-close { transition: background-color 160ms ease, color 160ms ease, transform 160ms ease; }
+  .cr-confirm-close:hover { transform: translateY(-1px); }
+
+  .cr-confirm-btn { transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease; }
+  .cr-confirm-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(59,130,246,.25); }
+  .cr-confirm-cancel:hover { transform: translateY(-1px); }
+  .cr-confirm-confirm { box-shadow: 0 10px 22px rgba(40,167,69,0.18); }
+  .cr-confirm-confirm:hover { transform: translateY(-1px); filter: brightness(0.97); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cr-confirm-overlay, .cr-confirm-dialog, .cr-confirm-btn, .cr-confirm-close { transition: none !important; }
+    .cr-confirm-dialog { transform: none !important; opacity: 1 !important; }
+  }
+</style>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-  const selectAddress = document.getElementById("shipping_address");
-  const confirmBtn = document.querySelector(".btn-place-order");
+  // Intercept submit to show confirmation modal
+  (function() {
+    const form = document.querySelector('.checkout-form');
+    const overlay = document.getElementById('cr-confirm-overlay');
+    const btnConfirm = overlay ? overlay.querySelector('.cr-confirm-confirm') : null;
+    const btnCancel = overlay ? overlay.querySelector('.cr-confirm-cancel') : null;
+    const btnClose = overlay ? overlay.querySelector('.cr-confirm-close') : null;
 
-  function checkAddress() {
-    if (!selectAddress || !confirmBtn) return;
+    if (!form || !overlay) return;
 
-    // Disable if no options or selected value is empty
-    if (selectAddress.options.length === 0 || !selectAddress.value.trim()) {
-      confirmBtn.disabled = true;
-      confirmBtn.style.cursor = "not-allowed";
-      confirmBtn.style.opacity = "0.6";
-    } else {
-      confirmBtn.disabled = false;
-      confirmBtn.style.cursor = "pointer";
-      confirmBtn.style.opacity = "1";
+    function openConfirm() {
+      overlay.classList.add('show');
+      overlay.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => btnConfirm && btnConfirm.focus(), 50);
     }
-  }
+    function closeConfirm() {
+      overlay.classList.remove('show');
+      overlay.style.display = 'none';
+      document.body.style.overflow = '';
+    }
 
-  // Initial check on page load
-  checkAddress();
+    form.addEventListener('submit', function(e) {
+      // If already confirmed once, allow submit
+      if (form.dataset.confirmed === 'true') return;
+      e.preventDefault();
+      openConfirm();
+    });
 
-  // Update on change
-  selectAddress.addEventListener("change", checkAddress);
-});
+    // Confirm action -> submit form for real
+    btnConfirm && btnConfirm.addEventListener('click', function() {
+      form.dataset.confirmed = 'true';
+      // Ensure PHP sees the submit button value when submitting programmatically
+      var hidden = document.createElement('input');
+      hidden.type = 'hidden';
+      hidden.name = 'confirm_order';
+      hidden.value = '1';
+      form.appendChild(hidden);
+      closeConfirm();
+      form.submit();
+    });
+
+    // Cancel/Close handlers
+    btnCancel && btnCancel.addEventListener('click', closeConfirm);
+    btnClose && btnClose.addEventListener('click', closeConfirm);
+
+    // Close when clicking outside dialog
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) closeConfirm();
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && overlay.classList.contains('show')) closeConfirm();
+    });
+  })();
 </script>
 
 

@@ -7,12 +7,129 @@ navItems.forEach((item) => {
     const targetSection = this.getAttribute("data-section");
 
     // Handle logout
+    // Add this to your existing JavaScript
+    const Toast = {
+      container: null,
+      overlay: null,
+
+      init() {
+        this.container = document.getElementById("toastContainer");
+        this.overlay = document.getElementById("toastOverlay");
+        this.overlay.addEventListener("click", () => this.hide());
+      },
+
+      show(options) {
+        const { type = "info", title, message, actions = [] } = options;
+        this.container.innerHTML = "";
+        document.body.style.overflow = "hidden";
+
+        const card = document.createElement("div");
+        card.className = `toast-card ${type}`;
+
+        const icons = {
+          warning: '<i class="fas fa-exclamation-triangle"></i>',
+          success: '<i class="fas fa-check-circle"></i>',
+        };
+
+        card.innerHTML = `
+            <div class="toast-icon">${icons[type]}</div>
+            ${title ? `<h2 class="toast-title">${title}</h2>` : ""}
+            ${message ? `<p class="toast-message">${message}</p>` : ""}
+            ${
+              actions.length > 0
+                ? `
+                <div class="toast-actions">
+                    ${actions
+                      .map(
+                        (action, index) => `
+                        <button class="toast-btn toast-btn-${action.style}" data-action="${index}">
+                            ${action.label}
+                        </button>
+                    `
+                      )
+                      .join("")}
+                </div>
+            `
+                : ""
+            }
+        `;
+
+        this.container.appendChild(card);
+
+        actions.forEach((action, index) => {
+          const btn = card.querySelector(`[data-action="${index}"]`);
+          if (btn)
+            btn.addEventListener(
+              "click",
+              () => action.onClick && action.onClick()
+            );
+        });
+
+        setTimeout(() => {
+          this.overlay.classList.add("show");
+          this.container.classList.add("show");
+        }, 10);
+      },
+
+      hide() {
+        this.overlay.classList.remove("show");
+        this.container.classList.remove("show");
+        document.body.style.overflow = "";
+      },
+
+      showLoading(message = "Loading...") {
+        this.container.innerHTML = `
+            <div class="toast-card">
+                <div class="toast-loading">
+                    <div class="toast-spinner"></div>
+                    <span style="color: var(--muted-foreground);">${message}</span>
+                </div>
+            </div>
+        `;
+        setTimeout(() => {
+          this.overlay.classList.add("show");
+          this.container.classList.add("show");
+        }, 10);
+        document.body.style.overflow = "hidden";
+      },
+
+      showSuccess(title, message) {
+        this.show({ type: "success", title, message });
+        setTimeout(() => this.hide(), 2000);
+      },
+    };
+
+    Toast.init();
+
+    function handleLogout() {
+      Toast.show({
+        type: "warning",
+        title: "Confirm Logout",
+        message: "Are you sure you want to logout?",
+        actions: [
+          {
+            label: "Cancel",
+            style: "secondary",
+            onClick: () => Toast.hide(),
+          },
+          {
+            label: "Logout",
+            style: "primary",
+            onClick: () => {
+              Toast.showLoading("Logging out...");
+              setTimeout(() => {
+                Toast.showSuccess("Logged Out", "Redirecting...");
+                setTimeout(() => (window.location.href = "logout.php"), 2000);
+              }, 1000);
+            },
+          },
+        ],
+      });
+    }
+
+    // Update your existing nav click handler
     if (targetSection === "logout") {
-      if (confirm("Are you sure you want to logout?")) {
-        alert("Logging out...");
-        // Add your logout logic here
-        window.location.href = "logout.php";
-      }
+      handleLogout();
       return;
     }
 
@@ -368,4 +485,139 @@ document.addEventListener("DOMContentLoaded", function () {
 
   fetchUsers();
   setInterval(fetchMessages, 3000);
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+  const previewButtons = document.querySelectorAll(".notification-preview-btn");
+  const modal = document.getElementById("notification-preview-modal");
+  if (!modal) {
+    return;
+  }
+
+  const gallery = document.getElementById("notification-preview-gallery");
+  const emptyState = document.getElementById("notification-preview-empty");
+  const title = document.getElementById("notification-preview-title");
+  const subtitle = modal.querySelector(".notification-preview-subtitle");
+  const closeBtn = modal.querySelector(".notification-preview-close");
+
+  const openModal = ({
+    images = [],
+    orderId = "",
+    customer = "",
+    items = [],
+  }) => {
+    if (!gallery || !emptyState || !title) {
+      return;
+    }
+
+    gallery.innerHTML = "";
+    emptyState.style.display = "none";
+
+    title.textContent = orderId ? `Order #${orderId} Photos` : "Order Photos";
+
+    if (subtitle) {
+      const summary =
+        Array.isArray(items) && items.length
+          ? `${customer ? `${customer} • ` : ""}${items
+              .slice(0, 3)
+              .join(", ")}${
+              items.length > 3 ? ` (+${items.length - 3} more)` : ""
+            }`
+          : customer;
+      subtitle.textContent = summary || "Customer confirmation preview";
+    }
+
+    if (Array.isArray(images) && images.length) {
+      images.forEach((src, index) => {
+        if (!src) {
+          return;
+        }
+        const wrapper = document.createElement("div");
+        const img = document.createElement("img");
+        img.src = src;
+        img.alt = `Order photo ${index + 1}`;
+        img.loading = "lazy";
+        wrapper.appendChild(img);
+        gallery.appendChild(wrapper);
+      });
+    } else {
+      emptyState.style.display = "flex";
+    }
+
+    modal.classList.add("show");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  };
+
+  const closeModal = () => {
+    modal.classList.remove("show");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  };
+
+  previewButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      let images = [];
+      let items = [];
+
+      const imageData = button.getAttribute("data-images");
+      if (imageData) {
+        try {
+          const parsed = JSON.parse(imageData);
+          if (Array.isArray(parsed)) {
+            images = parsed;
+          }
+        } catch (error) {
+          console.warn("Failed to parse notification images", error);
+        }
+      }
+
+      const itemData = button.getAttribute("data-items");
+      if (itemData) {
+        try {
+          const parsedItems = JSON.parse(itemData);
+          if (Array.isArray(parsedItems)) {
+            items = parsedItems;
+          }
+        } catch (error) {
+          console.warn("Failed to parse notification items", error);
+        }
+      }
+
+      openModal({
+        images,
+        items,
+        orderId: button.getAttribute("data-order") || "",
+        customer: button.getAttribute("data-customer") || "",
+      });
+    });
+  });
+
+  closeBtn?.addEventListener("click", closeModal);
+
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) {
+      closeModal();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && modal.classList.contains("show")) {
+      closeModal();
+    }
+  });
+
+  const manageLinks = document.querySelectorAll(".notification-link");
+  const ordersNav = document.querySelector('.nav-item[data-section="orders"]');
+
+  manageLinks.forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      ordersNav?.click();
+      const ordersSection = document.getElementById("orders");
+      if (ordersSection) {
+        ordersSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+  });
 });

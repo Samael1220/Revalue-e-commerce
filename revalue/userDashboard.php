@@ -493,56 +493,80 @@ $result = mysqli_query($conn, $query);
 
 <!-- Modal and Scripts same as before -->
 <script>
+// Define these functions globally so they can be called from onclick handlers
 function openReceivedModal(orderId) {
-  document.getElementById('modalOrderId').value = orderId;
-  document.getElementById('receivedModal').style.display = 'block';
+  const modalOrderId = document.getElementById('modalOrderId');
+  const receivedModal = document.getElementById('receivedModal');
+  if (modalOrderId && receivedModal) {
+    modalOrderId.value = orderId;
+    receivedModal.style.display = 'block';
+  }
 }
 
 function closeReceivedModal() {
-  document.getElementById('receivedModal').style.display = 'none';
-  document.getElementById('receivedForm').reset();
-}
-
-window.onclick = function(event) {
-  const modal = document.getElementById('receivedModal');
-  if (event.target === modal) closeReceivedModal();
-}
-
-document.getElementById('receivedForm').addEventListener('submit', function(e) {
-    e.preventDefault(); // Prevent default page reload
-
-    const formData = new FormData(this);
-    const orderId = formData.get('order_id');
-
-    // Optional: simple check for security confirmation
-    if (formData.get('confirmation').toUpperCase() !== 'RECEIVED') {
-        alert("Please type 'RECEIVED' to confirm.");
-        return;
+  const receivedModal = document.getElementById('receivedModal');
+  const receivedForm = document.getElementById('receivedForm');
+  if (receivedModal) {
+    receivedModal.style.display = 'none';
+    if (receivedForm) {
+      receivedForm.reset();
     }
+  }
+}
 
-    fetch('mark_order_received.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(res => res.text())
-    .then(response => {
-        if (response.trim() === 'success') {
-            // Update the order row in DOM
-            const orderRow = document.querySelector(`.order-row[data-id='${orderId}']`);
-            if (orderRow) {
-                const statusBadge = orderRow.querySelector('.status-badge');
-                statusBadge.innerHTML = `<i class='fas fa-circle'></i> Completed`;
-                statusBadge.classList.remove('status-pending', 'status-delivered');
-                statusBadge.classList.add('status-completed');
-            }
+// Wait for DOM to be ready before setting up event listeners
+document.addEventListener('DOMContentLoaded', function() {
+  // Close modal when clicking outside
+  window.onclick = function(event) {
+    const modal = document.getElementById('receivedModal');
+    if (modal && event.target === modal) {
+      closeReceivedModal();
+    }
+  }
 
-            closeReceivedModal(); // Close modal
-        } 
-    })
-    
+  // Handle form submission (first listener - using mark_order_received.php)
+  const receivedForm = document.getElementById('receivedForm');
+  if (receivedForm) {
+    receivedForm.addEventListener('submit', function(e) {
+      e.preventDefault(); // Prevent default page reload
+
+      const formData = new FormData(this);
+      const orderId = formData.get('order_id');
+
+      // Optional: simple check for security confirmation
+      if (formData.get('confirmation').toUpperCase() !== 'RECEIVED') {
+          alert("Please type 'RECEIVED' to confirm.");
+          return;
+      }
+
+      fetch('mark_order_received.php', {
+          method: 'POST',
+          body: formData
+      })
+      .then(res => res.text())
+      .then(response => {
+          if (response.trim() === 'success') {
+              // Update the order row in DOM
+              const orderRow = document.querySelector(`.order-row[data-id='${orderId}']`);
+              if (orderRow) {
+                  const statusBadge = orderRow.querySelector('.status-badge');
+                  if (statusBadge) {
+                      statusBadge.innerHTML = `<i class='fas fa-circle'></i> Completed`;
+                      statusBadge.classList.remove('status-pending', 'status-delivered');
+                      statusBadge.classList.add('status-completed');
+                  }
+              }
+
+              closeReceivedModal(); // Close modal
+          } 
+      })
+      .catch(err => {
+          console.error('Error:', err);
+          alert('Error connecting to server.');
+      });
+    });
+  }
 });
-
-
 </script>
 </section>
 
@@ -872,9 +896,19 @@ document.getElementById('cartForm').addEventListener('submit', function(e) {
       // Address Edit Modal Functions
       function openEditAddressModal(type) {
         const modal = document.getElementById('addressModal');
+        if (!modal) {
+          console.error('Address modal not found');
+          return;
+        }
+        
         const modalTitle = document.getElementById('modalTitle');
         const addressType = document.getElementById('addressType');
         const addressInput = document.getElementById('addressInput');
+        
+        if (!modalTitle || !addressType || !addressInput) {
+          console.error('Modal elements not found');
+          return;
+        }
         
         // Set the address type
         addressType.value = type;
@@ -911,136 +945,160 @@ document.getElementById('cartForm').addEventListener('submit', function(e) {
 
       function closeEditAddressModal() {
         const modal = document.getElementById('addressModal');
-        modal.style.display = 'none';
-        document.body.style.overflow = '';
+        if (modal) {
+          modal.style.display = 'none';
+          document.body.style.overflow = '';
+        }
       }
 
-      // Handle form submission
-      document.getElementById('addressForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        formData.append('update_address', '1');
-        
-        // Show loading state
-        const submitBtn = this.querySelector('button[type="submit"]');
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = 'Saving...';
-        submitBtn.disabled = true;
-        
-        fetch('editAddress.php', {
-          method: 'POST',
-          body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            // Update UI immediately
-            const t = formData.get('address_type');
-            const newAddr = data.new_address || '';
-            if (t === 'main') {
-              const el = document.getElementById('mainAddressText');
-              if (el) el.textContent = newAddr || 'No address set';
-              // Reflect in Personal Details address input
-              const personalAddressInput = document.getElementById('address');
-              if (personalAddressInput) personalAddressInput.value = newAddr;
-            }
-            if (t === 'home') {
-              const el = document.getElementById('homeAddressText');
-              if (el) el.textContent = newAddr || 'No address set';
-            }
-            if (t === 'work') {
-              const el = document.getElementById('workAddressText');
-              if (el) el.textContent = newAddr || 'No address set';
-            }
+      // Wait for DOM to be ready before setting up event listeners
+      document.addEventListener('DOMContentLoaded', function() {
+        // Handle form submission
+        const addressForm = document.getElementById('addressForm');
+        if (addressForm) {
+          addressForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            formData.append('update_address', '1');
+            
+            // Show loading state
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Saving...';
+            submitBtn.disabled = true;
+            
+            fetch('editAddress.php', {
+              method: 'POST',
+              body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                // Update UI immediately
+                const t = formData.get('address_type');
+                const newAddr = data.new_address || '';
+                if (t === 'main') {
+                  const el = document.getElementById('mainAddressText');
+                  if (el) el.textContent = newAddr || 'No address set';
+                  // Reflect in Personal Details address input
+                  const personalAddressInput = document.getElementById('address');
+                  if (personalAddressInput) personalAddressInput.value = newAddr;
+                }
+                if (t === 'home') {
+                  const el = document.getElementById('homeAddressText');
+                  if (el) el.textContent = newAddr || 'No address set';
+                }
+                if (t === 'work') {
+                  const el = document.getElementById('workAddressText');
+                  if (el) el.textContent = newAddr || 'No address set';
+                }
 
-            // Show success toast and close modal
-            showToast('Succesfully Updated', 'Address Updated', data.message);
-            closeEditAddressModal();
-          } else {
-            // Show error toast
-            showToast('error', 'Update Failed', data.message);
+                // Show success toast and close modal
+                if (typeof showToast === 'function') {
+                  showToast('Succesfully Updated', 'Address Updated', data.message);
+                }
+                closeEditAddressModal();
+              } else {
+                // Show error toast
+                if (typeof showToast === 'function') {
+                  showToast('error', 'Update Failed', data.message);
+                }
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              if (typeof showToast === 'function') {
+                showToast('error', 'Connection Error', 'Failed to update address. Please try again.');
+              }
+            })
+            .finally(() => {
+              // Reset button
+              submitBtn.textContent = originalText;
+              submitBtn.disabled = false;
+            });
+          });
+        }
+
+        // Close modal when clicking outside
+        const addressModal = document.getElementById('addressModal');
+        if (addressModal) {
+          addressModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+              closeEditAddressModal();
+            }
+          });
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') {
+            const modal = document.getElementById('addressModal');
+            if (modal && modal.style.display === 'flex') {
+              closeEditAddressModal();
+            }
           }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          showToast('error', 'Connection Error', 'Failed to update address. Please try again.');
-        })
-        .finally(() => {
-          // Reset button
-          submitBtn.textContent = originalText;
-          submitBtn.disabled = false;
         });
       });
-
-      // Close modal when clicking outside
-      document.getElementById('addressModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-          closeEditAddressModal();
-        }
-      });
-
-      // Close modal with Escape key
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-          closeEditAddressModal();
-        }
-      });
-
-      
-
-
     </script>
 
     
       <script>
-document.getElementById('receivedForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+      // Wait for DOM to be ready before setting up receivedForm event listener
+      document.addEventListener('DOMContentLoaded', function() {
+        const receivedForm = document.getElementById('receivedForm');
+        if (receivedForm) {
+          receivedForm.addEventListener('submit', function(e) {
+            e.preventDefault();
 
-    const orderId = document.getElementById('modalOrderId').value;
-    const confirmation = document.getElementById('confirmation').value.trim();
+            const orderId = document.getElementById('modalOrderId').value;
+            const confirmation = document.getElementById('confirmation').value.trim();
 
-    if (confirmation.toUpperCase() !== 'RECEIVED') {
-        alert("Please type 'RECEIVED' to confirm.");
-        return;
-    }
-
-    const formData = new FormData(this);
-
-    fetch('mark_received.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(res => res.text())
-    .then(response => {
-        if (response.trim() === 'success') {
-            alert('Order marked as Completed!');
-
-            // Find the order card by button data-id
-            const orderCard = document.querySelector(`.btn-received[data-id='${orderId}']`)?.closest('.order-card');
-            if (orderCard) {
-                const statusBadge = orderCard.querySelector('.status-badge');
-                if (statusBadge) {
-                    statusBadge.textContent = 'Completed';
-                    statusBadge.classList.remove('pending', 'delivered');
-                    statusBadge.classList.add('completed');
-                }
-
-                // Remove the "Mark as Received" button
-                const receivedBtn = orderCard.querySelector('.btn-received');
-                if (receivedBtn) receivedBtn.remove();
+            if (confirmation.toUpperCase() !== 'RECEIVED') {
+                alert("Please type 'RECEIVED' to confirm.");
+                return;
             }
 
-            closeReceivedModal();
-        } else {
-            alert('Failed to update order.');
+            const formData = new FormData(this);
+
+            fetch('mark_received.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.text())
+            .then(response => {
+                if (response.trim() === 'success') {
+                    alert('Order marked as Completed!');
+
+                    // Find the order card by button data-id
+                    const orderCard = document.querySelector(`.btn-received[data-id='${orderId}']`)?.closest('.order-card');
+                    if (orderCard) {
+                        const statusBadge = orderCard.querySelector('.status-badge');
+                        if (statusBadge) {
+                            statusBadge.textContent = 'Completed';
+                            statusBadge.classList.remove('pending', 'delivered');
+                            statusBadge.classList.add('completed');
+                        }
+
+                        // Remove the "Mark as Received" button
+                        const receivedBtn = orderCard.querySelector('.btn-received');
+                        if (receivedBtn) receivedBtn.remove();
+                    }
+
+                    if (typeof closeReceivedModal === 'function') {
+                        closeReceivedModal();
+                    }
+                } else {
+                    alert('Failed to update order.');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Error connecting to server.');
+            });
+          });
         }
-    })
-    .catch(err => {
-        console.error(err);
-        alert('Error connecting to server.');
-    });
-});
+      });
 </script>
 
 
