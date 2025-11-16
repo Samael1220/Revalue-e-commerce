@@ -303,7 +303,7 @@ if (isset($_POST['confirm_order'])) {
 </div>
 
 <style>
-  /* Minimal, scoped styles to avoid conflicts */
+  
   .cr-confirm-overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.5); z-index: 9999; padding: 16px; }
   .cr-confirm-overlay.show { display: flex; }
   .cr-confirm-dialog { background: #fff; color: #111; border-radius: 12px; width: min(420px, 100%); box-shadow: 0 20px 50px rgba(0,0,0,.25); overflow: hidden; }
@@ -311,7 +311,7 @@ if (isset($_POST['confirm_order'])) {
   .cr-confirm-title { margin: 0; font-size: 1.1rem; font-weight: 700; }
   .cr-confirm-close { background: transparent; border: none; font-size: 22px; line-height: 1; cursor: pointer; color: #666; border-radius: 6px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
   .cr-confirm-close:hover { background: #f3f4f6; color: #111; }
-  .cr-confirm-body { padding: 14px 18px; color: #374151; }
+  .cr-confirm-body { padding: 18px 18px 18px 18px; color: #374151; }
   .cr-confirm-actions { display: flex; gap: 10px; justify-content: flex-end; padding: 0 18px 16px; }
   .cr-confirm-btn { min-width: 110px; padding: 10px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; border: 1px solid transparent; }
   .cr-confirm-cancel { background: #fff; color: #374151; border-color: #e5e7eb; }
@@ -321,7 +321,7 @@ if (isset($_POST['confirm_order'])) {
 </style>
 
 <style>
-  /* Enhancements: transitions and polish for confirmation modal */
+ 
   .cr-confirm-overlay { opacity: 0; pointer-events: none; transition: opacity 180ms ease; }
   .cr-confirm-overlay.show { opacity: 1; pointer-events: auto; }
 

@@ -238,7 +238,7 @@ if (isset($_SESSION['user_id'])) {
       future.
     </h4>
     <div class="btn-container">
-      <button onclick="window.open('index.html', '_blank')" class="bt">Shop Collection</button>
+      <button onclick="window.open('index.php', '_blank')" class="bt">Shop Collection</button>
 
 
       <button onclick="window.open('story.html','_blank' )" class="btn btn-outline bt" >Learn Our Story</button>

@@ -355,93 +355,299 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
         </div>
     </div>
 </section>
+<!-- Toast Elements -->
+<div class="toast-overlay" id="toastOverlay"></div>
+<div class="toast-container" id="toastContainer"></div>
 
-<!-- JS to mark Pending as Delivered or Completed -->
+<!-- JS for Toast System and Order Status Updates -->
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    const updateRecentOrders = (orderId, newStatus) => {
-        const recentBadge = document.querySelector(`.recent-orders-card .status-badge[data-id='${orderId}']`);
-        if (recentBadge) {
-            recentBadge.innerHTML = `<i class='fas fa-circle'></i> ${newStatus}`;
-            recentBadge.classList.remove("status-pending", "status-delivered", "status-completed");
-            recentBadge.classList.add(
-                newStatus === "Delivered" ? "status-delivered" : "status-completed"
-            );
-            recentBadge.style.cursor = "default"; // lock badge
+    // Define Toast System
+    const Toast = {
+        container: null,
+        overlay: null,
+
+        init() {
+            this.container = document.getElementById('toastContainer');
+            this.overlay = document.getElementById('toastOverlay');
+            
+            if (this.overlay) {
+                this.overlay.addEventListener('click', () => this.hide());
+            }
+        },
+
+        show(options) {
+            const { type = 'info', title, message, actions = [] } = options;
+            this.container.innerHTML = '';
+
+            const card = document.createElement('div');
+            card.className = `toast-card ${type}`;
+
+            const icons = {
+                warning: '<i class="fas fa-exclamation-triangle"></i>',
+                success: '<i class="fas fa-check-circle"></i>',
+                error: '<i class="fas fa-times-circle"></i>',
+                info: '<i class="fas fa-info-circle"></i>'
+            };
+
+            card.innerHTML = `
+                <div class="toast-icon">${icons[type]}</div>
+                ${title ? `<h2 class="toast-title">${title}</h2>` : ''}
+                ${message ? `<p class="toast-message">${message}</p>` : ''}
+                ${actions.length > 0 ? `
+                    <div class="toast-actions">
+                        ${actions.map((action, index) => `
+                            <button class="toast-btn toast-btn-${action.style}" data-action="${index}">
+                                ${action.label}
+                            </button>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            `;
+
+            this.container.appendChild(card);
+
+            actions.forEach((action, index) => {
+                const btn = card.querySelector(`[data-action="${index}"]`);
+                if (btn) btn.addEventListener('click', () => action.onClick && action.onClick());
+            });
+
+            document.body.style.overflow = 'hidden';
+
+            setTimeout(() => {
+                this.overlay.classList.add('show');
+                this.container.classList.add('show');
+            }, 10);
+        },
+
+        hide() {
+            this.overlay.classList.remove('show');
+            this.container.classList.remove('show');
+            document.body.style.overflow = '';
+        },
+
+        showLoading(message = 'Loading...') {
+            this.container.innerHTML = `
+                <div class="toast-card">
+                    <div class="toast-loading">
+                        <div class="toast-spinner"></div>
+                        <span style="color: var(--muted-foreground); font-size: 1rem;">${message}</span>
+                    </div>
+                </div>
+            `;
+            
+            document.body.style.overflow = 'hidden';
+            
+            setTimeout(() => {
+                this.overlay.classList.add('show');
+                this.container.classList.add('show');
+            }, 10);
+        },
+
+        showSuccess(title, message, duration = 2000) {
+            this.show({ type: 'success', title, message });
+            if (duration) {
+                setTimeout(() => this.hide(), duration);
+            }
+        },
+
+        showSuccessWithLoading(title, message) {
+            this.container.innerHTML = '';
+            
+            const card = document.createElement('div');
+            card.className = 'toast-card success';
+            card.innerHTML = `
+                <div class="toast-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h2 class="toast-title">${title}</h2>
+                <p class="toast-message">${message}</p>
+                <div class="toast-loading-bar">
+                    <div class="toast-loading-progress"></div>
+                </div>
+            `;
+            
+            this.container.appendChild(card);
+            
+            document.body.style.overflow = 'hidden';
+            
+            setTimeout(() => {
+                this.overlay.classList.add('show');
+                this.container.classList.add('show');
+            }, 10);
         }
     };
 
-    document.querySelectorAll("#orders .status-badge.status-pending").forEach(badge => {
-        const handleClick = function() {
-            const orderId = this.getAttribute("data-id");
+    // Initialize when DOM is ready
+    document.addEventListener("DOMContentLoaded", function() {
+        // Initialize Toast System
+        Toast.init();
 
-            if (confirm("Mark this order as Delivered?")) {
-                fetch("update_order_status.php", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                    body: "order_id=" + encodeURIComponent(orderId) + "&status=Delivered"
-                })
-                .then(res => res.text())
-                .then(response => {
-                    if (response.trim() === "success") {
-                        this.innerHTML = "<i class='fas fa-circle'></i> Delivered";
-                        this.classList.remove("status-pending");
-                        this.classList.add("status-delivered");
-                        this.style.cursor = "default"; // lock badge
-
-                        // Remove click listener so it can't be clicked again
-                        this.removeEventListener("click", handleClick);
-
-                        updateRecentOrders(orderId, "Delivered");
-                    } else {
-                        alert("Error updating order status.");
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert("Error connecting to server.");
-                });
+        // Update Recent Orders function
+        const updateRecentOrders = (orderId, newStatus) => {
+            const recentBadge = document.querySelector(`.recent-orders-card .status-badge[data-id='${orderId}']`);
+            if (recentBadge) {
+                recentBadge.innerHTML = `<i class='fas fa-circle'></i> ${newStatus}`;
+                recentBadge.classList.remove("status-pending", "status-delivered", "status-completed");
+                recentBadge.classList.add(
+                    newStatus === "Delivered" ? "status-delivered" : "status-completed"
+                );
+                recentBadge.style.cursor = "default";
             }
         };
 
-        badge.addEventListener("click", handleClick);
+        // Handle Pending Badge Clicks
+        document.querySelectorAll("#orders .status-badge.status-pending").forEach(badge => {
+            const handleClick = function() {
+                const orderId = this.getAttribute("data-id");
+                const badgeElement = this;
+
+                // Show confirmation toast
+                Toast.show({
+                    type: 'info',
+                    title: 'Update Order Status',
+                    message: 'Mark this order as Delivered?',
+                    actions: [
+                        {
+                            label: 'Cancel',
+                            style: 'secondary',
+                            onClick: () => Toast.hide()
+                        },
+                        {
+                            label: 'Mark as Delivered',
+                            style: 'primary',
+                            onClick: () => {
+                                // Show loading
+                                Toast.showLoading('Updating order status...');
+
+                                fetch("update_order_status.php", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                                    body: "order_id=" + encodeURIComponent(orderId) + "&status=Delivered"
+                                })
+                                .then(res => res.text())
+                                .then(response => {
+                                    if (response.trim() === "success") {
+                                        // Show success with inline loading
+                                        Toast.showSuccessWithLoading(
+                                            'Order Updated Successfully',
+                                            'Status has been changed to Delivered'
+                                        );
+
+                                        // Update badge after showing success
+                                        setTimeout(() => {
+                                            badgeElement.innerHTML = "<i class='fas fa-circle'></i> Delivered";
+                                            badgeElement.classList.remove("status-pending");
+                                            badgeElement.classList.add("status-delivered");
+                                            badgeElement.style.cursor = "default";
+
+                                            // Remove click listener
+                                            badgeElement.removeEventListener("click", handleClick);
+
+                                            updateRecentOrders(orderId, "Delivered");
+
+                                            // Auto-hide toast after 3 seconds
+                                            setTimeout(() => Toast.hide(), 3000);
+                                        }, 500);
+                                    } else {
+                                        // Show error toast
+                                        Toast.show({
+                                            type: 'error',
+                                            title: 'Update Failed',
+                                            message: 'Error updating order status. Please try again.',
+                                            actions: [
+                                                {
+                                                    label: 'Close',
+                                                    style: 'secondary',
+                                                    onClick: () => Toast.hide()
+                                                }
+                                            ]
+                                        });
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error(err);
+                                    
+                                    // Show error toast
+                                    Toast.show({
+                                        type: 'error',
+                                        title: 'Connection Error',
+                                        message: 'Error connecting to server. Please check your connection.',
+                                        actions: [
+                                            {
+                                                label: 'Close',
+                                                style: 'secondary',
+                                                onClick: () => Toast.hide()
+                                            }
+                                        ]
+                                    });
+                                });
+                            }
+                        }
+                    ]
+                });
+            };
+
+            badge.addEventListener("click", handleClick);
+        });
     });
-});
+
+    // Logout Functions (can be called from anywhere)
+    function handleFormLogout() {
+        Toast.show({
+            type: 'warning',
+            title: 'Confirm Logout',
+            message: 'Are you sure you want to logout?',
+            actions: [
+                {
+                    label: 'Cancel',
+                    style: 'secondary',
+                    onClick: () => Toast.hide()
+                },
+                {
+                    label: 'Logout',
+                    style: 'primary',
+                    onClick: () => {
+                        Toast.showLoading('Logging out...');
+                        setTimeout(() => {
+                            document.getElementById('logoutForm').submit();
+                        }, 1000);
+                    }
+                }
+            ]
+        });
+    }
+
+    function handleLogout() {
+        Toast.show({
+            type: 'warning',
+            title: 'Confirm Logout',
+            message: 'Are you sure you want to logout?',
+            actions: [
+                {
+                    label: 'Cancel',
+                    style: 'secondary',
+                    onClick: () => Toast.hide()
+                },
+                {
+                    label: 'Logout',
+                    style: 'primary',
+                    onClick: () => {
+                        Toast.showLoading('Logging out...');
+                        setTimeout(() => {
+                            Toast.showSuccess('Logged Out', 'Redirecting...');
+                            setTimeout(() => {
+                                window.location.href = 'logout.php';
+                            }, 2000);
+                        }, 1000);
+                    }
+                }
+            ]
+        });
+    }
 </script>
 
-<!-- CSS -->
-<style>
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 3px 8px;
-    border-radius: 5px;
-    font-weight: 500;
-    font-size: 0.9rem;
-}
 
-/* Pending = yellow, clickable */
-.status-pending {
-    background-color: #ffc107;
-    color: #000;
-    cursor: pointer;
-}
 
-/* Delivered = blue, locked */
-.status-delivered {
-    background-color: #188da1ff;
-    color: #fff;
-    cursor: default;
-}
-
-/* Completed = green, locked */
-.status-completed {
-    background-color: #248b3cff;
-    color: #fff;
-    cursor: default;
-}
-</style>
 
         <!-- Notifications Section -->
 <!-- Notifications Section -->
@@ -520,17 +726,13 @@ document.addEventListener("DOMContentLoaded", function() {
                             </div>
                         <?php endif; ?>
 
-                        <button
-                            type="button"
-                            class="notif-view-btn"
-                            data-images="<?php echo $encodedImages; ?>"
-                            data-order="<?php echo htmlspecialchars($notification['id']); ?>"
-                            data-customer="<?php echo htmlspecialchars($notification['Full_name'], ENT_QUOTES, 'UTF-8'); ?>"
-                            data-items="<?php echo $encodedItems; ?>"
-                        >
-                            <i class="fas fa-eye"></i>
-                        </button>
+                       
                     </div>
+
+
+  
+
+
 
                     <!-- Content Section -->
                     <div class="notif-content-section">

@@ -116,9 +116,7 @@ if ($products && $products->num_rows > 0):
         <div class="product-image">
             <img src="<?php echo htmlspecialchars($product['image'], ENT_QUOTES, 'UTF-8'); ?>" 
                  alt="<?php echo htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8'); ?>" />
-            <div class="product-overlay">
-                <span class="quick-view">QUICK VIEW</span>
-            </div>
+           
         </div>
         <div class="product-info">
             <span class="product-category"><?php echo htmlspecialchars($product['category'], ENT_QUOTES, 'UTF-8'); ?></span>
