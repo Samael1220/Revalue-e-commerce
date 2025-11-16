@@ -134,7 +134,7 @@ $grandTotal = $order['total_amount'] ?? 0;
                                 <h4 class="product-name"><?= htmlspecialchars($item['product_name']) ?></h4>
                                 <div class="product-meta">
                                     <span class="product-size">Size: <?= htmlspecialchars($item['size'] ?: 'N/A') ?></span>
-                                    <span class="product-quantity">Qty: <?= htmlspecialchars($item['quantity']) ?></span>
+                                   
                                 </div>
                                 <div class="product-price">₱<?= number_format($item['price'] * $item['quantity'], 2) ?></div>
                             </div>

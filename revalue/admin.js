@@ -621,3 +621,29 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 });
+
+document.querySelectorAll(".notif-view-btn").forEach((btn) => {
+  btn.addEventListener("click", function () {
+    const parent = this.closest(".notif-image-section");
+    const img = parent.querySelector("img");
+
+    if (img) {
+      const modal = document.getElementById("imageModal");
+      const modalImg = document.getElementById("modalImg");
+
+      modalImg.src = img.src;
+      modal.classList.add("show");
+    }
+  });
+});
+
+document.getElementById("closeModal").addEventListener("click", function () {
+  document.getElementById("imageModal").classList.remove("show");
+});
+
+// Close modal on outside click
+document.getElementById("imageModal").addEventListener("click", function (e) {
+  if (e.target === this) {
+    this.classList.remove("show");
+  }
+});

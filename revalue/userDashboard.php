@@ -1106,7 +1106,7 @@ document.getElementById('cartForm').addEventListener('submit', function(e) {
             .then(res => res.text())
             .then(response => {
                 if (response.trim() === 'success') {
-                    alert('Order marked as Completed!');
+                   
 
                     // Find the order card by button data-id
                     const orderCard = document.querySelector(`.btn-received[data-id='${orderId}']`)?.closest('.order-card');
