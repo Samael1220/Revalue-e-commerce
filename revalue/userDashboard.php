@@ -441,7 +441,17 @@ $result = mysqli_query($conn, $query);
               <h3>Order #<?php echo htmlspecialchars($row['id']); ?></h3>
               <span class="order-date"><?php echo htmlspecialchars($row['order_date']); ?></span>
             </div>
-            <span class="status-badge <?php echo ($row['status'] === 'Pending') ? 'pending' : 'completed'; ?>">
+            <?php
+            // Determine status badge class
+            $statusClass = match(strtolower($row['status'])) {
+                'pending' => 'pending',
+                'delivered' => 'delivered',
+                'completed' => 'completed',
+                'cancelled', 'canceled' => 'cancelled',
+                default => 'pending'
+            };
+            ?>
+            <span class="status-badge <?php echo $statusClass; ?>">
               <?php echo htmlspecialchars($row['status']); ?>
             </span>
           </div>

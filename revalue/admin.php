@@ -256,6 +256,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
     background-color: #6c757d; /* Gray */
     color: #fff;
 }
+
+.status-cancelled {
+    background-color: #dc3545; /* Red */
+    color: #fff;
+}
+
+.btn-cancel-order {
+    padding: 6px 12px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: background-color 0.2s;
+}
+
+.btn-cancel-order:hover:not(:disabled) {
+    background-color: #c82333;
+}
+
+.btn-cancel-order:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
 </style>
         </section>
 
@@ -278,6 +306,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
                         <th>Total Amount</th>
                         <th>Status</th>
                         <th>Order Date</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -305,14 +334,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
 
                     if ($orders && $orders->num_rows > 0) {
                         while ($order = $orders->fetch_assoc()) {
-                            // Badge class
+                            // Badge class - add cancelled status
                             $statusClass = match(strtolower($order['status'])) {
                                 'pending' => 'status-pending',
                                 'delivered' => 'status-delivered',
                                 'completed' => 'status-completed',
+                                'cancelled' => 'status-cancelled',
+                                'canceled' => 'status-cancelled',
                                 default => 'status-other',
                             };
                             $statusText = htmlspecialchars($order['status']);
+                            $isCancelled = (strtolower($order['status']) === 'cancelled' || strtolower($order['status']) === 'canceled');
+                            $isCompleted = (strtolower($order['status']) === 'completed');
+                            $isDelivered = (strtolower($order['status']) === 'delivered');
 
                             // Decode product names and images
                             $names = json_decode($order['product_names'], true);
@@ -330,6 +364,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
                             }
                             $productHTML .= "</div>";
 
+                            // Cancel button - only show if not already cancelled, completed, or delivered
+                            $cancelButton = '';
+                            if ($isCancelled) {
+                                $cancelButton = "<button class='btn-cancel-order' disabled style='opacity: 0.5; cursor: not-allowed;'>
+                                    <i class='fas fa-ban'></i> Cancelled
+                                </button>";
+                            } elseif ($isCompleted || $isDelivered) {
+                                // No cancel button for completed or delivered orders
+                                $cancelButton = "";
+                            } else {
+                                $cancelButton = "<button class='btn-cancel-order' data-order-id='{$order['order_id']}' onclick='cancelOrder({$order['order_id']}, this)'>
+                                    <i class='fas fa-times-circle'></i> Cancel Order
+                                </button>";
+                            }
+
                             echo "
                             <tr>
                                 <td><strong>#" . str_pad($order['order_id'], 5, '0', STR_PAD_LEFT) . "</strong></td>
@@ -344,10 +393,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
                                     </span>
                                 </td>
                                 <td>" . date('M d, Y h:i A', strtotime($order['order_date'])) . "</td>
+                                <td>$cancelButton</td>
                             </tr>";
                         }
                     } else {
-                        echo "<tr><td colspan='8' class='text-center'>No orders found.</td></tr>";
+                        echo "<tr><td colspan='9' class='text-center'>No orders found.</td></tr>";
                     }
                     ?>
                 </tbody>
@@ -487,10 +537,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
             const recentBadge = document.querySelector(`.recent-orders-card .status-badge[data-id='${orderId}']`);
             if (recentBadge) {
                 recentBadge.innerHTML = `<i class='fas fa-circle'></i> ${newStatus}`;
-                recentBadge.classList.remove("status-pending", "status-delivered", "status-completed");
-                recentBadge.classList.add(
-                    newStatus === "Delivered" ? "status-delivered" : "status-completed"
-                );
+                recentBadge.classList.remove("status-pending", "status-delivered", "status-completed", "status-cancelled", "status-other");
+                
+                let statusClass = "status-other";
+                if (newStatus === "Delivered") {
+                    statusClass = "status-delivered";
+                } else if (newStatus === "Completed") {
+                    statusClass = "status-completed";
+                } else if (newStatus === "Cancelled" || newStatus === "Canceled") {
+                    statusClass = "status-cancelled";
+                } else if (newStatus === "Pending") {
+                    statusClass = "status-pending";
+                }
+                
+                recentBadge.classList.add(statusClass);
                 recentBadge.style.cursor = "default";
             }
         };
@@ -590,6 +650,105 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
             badge.addEventListener("click", handleClick);
         });
     });
+
+    // Cancel Order Function
+    function cancelOrder(orderId, buttonElement) {
+        // Show confirmation toast
+        Toast.show({
+            type: 'warning',
+            title: 'Cancel Order',
+            message: `Are you sure you want to cancel order #${String(orderId).padStart(5, '0')}? This action cannot be undone.`,
+            actions: [
+                {
+                    label: 'No',
+                    style: 'secondary',
+                    onClick: () => Toast.hide()
+                },
+                {
+                    label: 'Yes, Cancel Order',
+                    style: 'primary',
+                    onClick: () => {
+                        // Show loading
+                        Toast.showLoading('Cancelling order...');
+
+                        fetch("cancel_order.php", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                            body: "order_id=" + encodeURIComponent(orderId)
+                        })
+                        .then(res => res.text())
+                        .then(response => {
+                            if (response.trim() === "success") {
+                                // Show success with inline loading
+                                Toast.showSuccessWithLoading(
+                                    'Order Cancelled',
+                                    `Order #${String(orderId).padStart(5, '0')} has been cancelled successfully`
+                                );
+
+                                // Update UI after showing success
+                                setTimeout(() => {
+                                    // Update status badge
+                                    const statusBadge = document.querySelector(`#orders .status-badge[data-id='${orderId}']`);
+                                    if (statusBadge) {
+                                        statusBadge.innerHTML = "<i class='fas fa-circle'></i> Cancelled";
+                                        statusBadge.classList.remove("status-pending", "status-delivered", "status-completed", "status-other");
+                                        statusBadge.classList.add("status-cancelled");
+                                        statusBadge.style.cursor = "default";
+                                    }
+
+                                    // Update cancel button
+                                    if (buttonElement) {
+                                        buttonElement.disabled = true;
+                                        buttonElement.style.opacity = '0.5';
+                                        buttonElement.style.cursor = 'not-allowed';
+                                        buttonElement.innerHTML = "<i class='fas fa-ban'></i> Cancelled";
+                                        buttonElement.onclick = null;
+                                    }
+
+                                    // Update recent orders if exists
+                                    updateRecentOrders(orderId, "Cancelled");
+
+                                    // Auto-hide toast after 3 seconds
+                                    setTimeout(() => Toast.hide(), 3000);
+                                }, 500);
+                            } else {
+                                // Show error toast
+                                Toast.show({
+                                    type: 'error',
+                                    title: 'Cancellation Failed',
+                                    message: response.trim().startsWith('error:') ? response.trim().substring(7) : 'Error cancelling order. Please try again.',
+                                    actions: [
+                                        {
+                                            label: 'Close',
+                                            style: 'secondary',
+                                            onClick: () => Toast.hide()
+                                        }
+                                    ]
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            
+                            // Show error toast
+                            Toast.show({
+                                type: 'error',
+                                title: 'Connection Error',
+                                message: 'Error connecting to server. Please check your connection.',
+                                actions: [
+                                    {
+                                        label: 'Close',
+                                        style: 'secondary',
+                                        onClick: () => Toast.hide()
+                                    }
+                                ]
+                            });
+                        });
+                    }
+                }
+            ]
+        });
+    }
 
     // Logout Functions (can be called from anywhere)
     function handleFormLogout() {
