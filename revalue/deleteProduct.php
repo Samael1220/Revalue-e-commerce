@@ -3,7 +3,8 @@ include("db.php");
 
 // Check if ID is provided
 if (!isset($_GET['id'])) {
-    die("Product ID missing.");
+    header("Location: admin.php?deleted=error#products");
+    exit();
 }
 
 $id = intval($_GET['id']);
@@ -13,8 +14,10 @@ $stmt = $conn->prepare("DELETE FROM inventory WHERE id = ?");
 $stmt->bind_param("i", $id);
 
 if ($stmt->execute()) {
-    header("Location: admin.php#products");
+    header("Location: admin.php?deleted=success#products");
     exit();
 } else {
-    echo "Error deleting product: " . $conn->error;
+    header("Location: admin.php?deleted=error#products");
+    exit();
 }
+?>
