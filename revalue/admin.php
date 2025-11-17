@@ -300,7 +300,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
                     <tr>
                         <th>Order ID</th>
                         <th>User Name</th>
-                        <th>Email</th>
                         <th>Address</th>
                         <th>Products</th>
                         <th>Total Amount</th>
@@ -313,7 +312,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
                     <?php
                     include('db.php');
 
-                    // Fetch all orders with user info
+                    // Removed email from SELECT
                     $query = "
                         SELECT 
                             o.id AS order_id,
@@ -323,7 +322,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
                             o.product_names,
                             o.product_images,
                             u.Full_name AS user_name,
-                            u.E_mail AS user_email,
                             u.address AS user_address
                         FROM orders o
                         JOIN users u ON o.user_id = u.id
@@ -334,7 +332,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
 
                     if ($orders && $orders->num_rows > 0) {
                         while ($order = $orders->fetch_assoc()) {
-                            // Badge class - add cancelled status
+                            
                             $statusClass = match(strtolower($order['status'])) {
                                 'pending' => 'status-pending',
                                 'delivered' => 'status-delivered',
@@ -343,39 +341,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
                                 'canceled' => 'status-cancelled',
                                 default => 'status-other',
                             };
-                            $statusText = htmlspecialchars($order['status']);
-                            $isCancelled = (strtolower($order['status']) === 'cancelled' || strtolower($order['status']) === 'canceled');
-                            $isCompleted = (strtolower($order['status']) === 'completed');
-                            $isDelivered = (strtolower($order['status']) === 'delivered');
 
-                            // Decode product names and images
+                            $statusText = htmlspecialchars($order['status']);
+                            $isCancelled = in_array(strtolower($order['status']), ['cancelled', 'canceled']);
+                            $isCompleted = strtolower($order['status']) === 'completed';
+                            $isDelivered = strtolower($order['status']) === 'delivered';
+
                             $names = json_decode($order['product_names'], true);
                             $images = json_decode($order['product_images'], true);
-                            $productHTML = '<div class="product-list">';
 
+                            $productHTML = '<div class="product-list">';
                             if (!empty($names) && !empty($images)) {
                                 foreach ($names as $idx => $name) {
-                                    $img = isset($images[$idx]) ? $images[$idx] : '';
-                                    $productHTML .= "<div class='product-item'>";
-                                    $productHTML .= "<img src='" . htmlspecialchars($img) . "' alt='" . htmlspecialchars($name) . "'>";
-                                    $productHTML .= "<span>" . htmlspecialchars($name) . "</span>";
-                                    $productHTML .= "</div>";
+                                    $img = $images[$idx] ?? '';
+                                    $productHTML .= "
+                                        <div class='product-item'>
+                                            <img src='" . htmlspecialchars($img) . "' alt='" . htmlspecialchars($name) . "'>
+                                            <span>" . htmlspecialchars($name) . "</span>
+                                        </div>";
                                 }
                             }
                             $productHTML .= "</div>";
 
-                            // Cancel button - only show if not already cancelled, completed, or delivered
                             $cancelButton = '';
                             if ($isCancelled) {
                                 $cancelButton = "<button class='btn-cancel-order' disabled style='opacity: 0.5; cursor: not-allowed;'>
                                     <i class='fas fa-ban'></i> Cancelled
                                 </button>";
                             } elseif ($isCompleted || $isDelivered) {
-                                // No cancel button for completed or delivered orders
                                 $cancelButton = "";
                             } else {
                                 $cancelButton = "<button class='btn-cancel-order' data-order-id='{$order['order_id']}' onclick='cancelOrder({$order['order_id']}, this)'>
-                                    <i class='fas fa-times-circle'></i> Cancel Order
+                                    <i class='fas fa-times-circle'></i> Cancel
                                 </button>";
                             }
 
@@ -383,7 +380,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
                             <tr>
                                 <td><strong>#" . str_pad($order['order_id'], 5, '0', STR_PAD_LEFT) . "</strong></td>
                                 <td>" . htmlspecialchars($order['user_name']) . "</td>
-                                <td>" . htmlspecialchars($order['user_email']) . "</td>
                                 <td><span class='text-muted'>" . htmlspecialchars($order['user_address']) . "</span></td>
                                 <td>$productHTML</td>
                                 <td><strong>₱" . number_format($order['total_amount'], 2) . "</strong></td>
@@ -397,7 +393,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
                             </tr>";
                         }
                     } else {
-                        echo "<tr><td colspan='9' class='text-center'>No orders found.</td></tr>";
+                        echo "<tr><td colspan='8' class='text-center'>No orders found.</td></tr>";
                     }
                     ?>
                 </tbody>
@@ -405,6 +401,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
         </div>
     </div>
 </section>
+
 <!-- Toast Elements -->
 <div class="toast-overlay" id="toastOverlay"></div>
 <div class="toast-container" id="toastContainer"></div>
@@ -684,6 +681,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
                                     'Order Cancelled',
                                     `Order #${String(orderId).padStart(5, '0')} has been cancelled successfully`
                                 );
+
+                                    setTimeout(() => {
+                                                        Toast.hide();
+                                                    }, 3000);
 
                                 // Update UI after showing success
                                 setTimeout(() => {
@@ -984,7 +985,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
                     echo "<img src='" . $row['image'] . "' alt='" . htmlspecialchars($row['name']) . "' class='product-image'>";
                     echo "<div class='product-overlay'>";
                     echo "<a href='editProduct.php?id=" . $row['id'] . "' class='overlay-btn'><i class='fas fa-edit'></i></a>";
-                    echo "<a href='deleteProduct.php?id=" . $row['id'] . "' onclick=\"return confirm('Are you sure you want to delete this product?');\" class='overlay-btn danger'><i class='fas fa-trash'></i></a>";
+                    echo "<a href='javascript:void(0);' onclick='showDeleteModal(" . $row['id'] . ")' class='overlay-btn danger'><i class='fas fa-trash'></i></a>";
                     echo "</div>";
                     echo "</div>";
                     echo "<div class='product-details'>";
@@ -1009,6 +1010,320 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
             $conn->close();
             ?>
         </section>
+
+
+       <style>
+.notification-toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.notification-toast {
+    background: white;
+    padding: 16px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin-bottom: 10px;
+    min-width: 300px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: toastSlideIn 0.3s ease-out;
+}
+
+.notification-toast.toast-success {
+    border-left: 4px solid #22c55e;
+}
+
+.notification-toast.toast-error {
+    border-left: 4px solid #ef4444;
+}
+
+.notification-toast.toast-warning {
+    border-left: 4px solid #f59e0b;
+}
+
+.notification-toast-icon {
+    font-size: 20px;
+}
+
+.notification-toast.toast-success .notification-toast-icon {
+    color: #22c55e;
+}
+
+.notification-toast.toast-error .notification-toast-icon {
+    color: #ef4444;
+}
+
+.notification-toast.toast-warning .notification-toast-icon {
+    color: #f59e0b;
+}
+
+.notification-toast-content {
+    flex: 1;
+}
+
+.notification-toast-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.notification-toast-message {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.notification-toast-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+@keyframes toastSlideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.delete-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9998;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-modal-overlay.active {
+    display: flex;
+}
+
+.delete-modal {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.delete-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.delete-modal-icon {
+    font-size: 24px;
+    color: #ef4444;
+}
+
+.delete-modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.delete-modal-body {
+    color: #6b7280;
+    margin-bottom: 24px;
+}
+
+.delete-modal-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.delete-modal-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.delete-modal-btn-cancel {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.delete-modal-btn-cancel:hover {
+    background: #e5e7eb;
+}
+
+.delete-modal-btn-confirm {
+    background: #ef4444;
+    color: white;
+}
+
+.delete-modal-btn-confirm:hover {
+    background: #dc2626;
+}
+</style>
+
+<!-- Add this HTML before closing </body> tag -->
+<div class="notification-toast-container" id="notificationToastContainer"></div>
+
+<div class="delete-modal-overlay" id="deleteModal">
+    <div class="delete-modal">
+        <div class="delete-modal-header">
+            <i class="fas fa-exclamation-triangle delete-modal-icon"></i>
+            <h3 class="delete-modal-title">Delete Product</h3>
+        </div>
+        <div class="delete-modal-body">
+            Are you sure you want to delete this product? This action cannot be undone.
+        </div>
+        <div class="delete-modal-footer">
+            <button class="delete-modal-btn delete-modal-btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+            <button class="delete-modal-btn delete-modal-btn-confirm" onclick="confirmDelete()">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add this JavaScript before closing </body> tag -->
+<script>
+let deleteProductId = null;
+
+function showToast(title, message, type = 'success') {
+    const container = document.getElementById('notificationToastContainer');
+    const toast = document.createElement('div');
+    toast.className = `notification-toast toast-${type}`;
+    
+    const iconMap = {
+        success: 'fa-check-circle',
+        error: 'fa-times-circle',
+        warning: 'fa-exclamation-circle'
+    };
+    
+    toast.innerHTML = `
+        <i class="fas ${iconMap[type]} notification-toast-icon"></i>
+        <div class="notification-toast-content">
+            <div class="notification-toast-title">${title}</div>
+            <div class="notification-toast-message">${message}</div>
+        </div>
+        <button class="notification-toast-close" onclick="this.parentElement.remove()">×</button>
+    `;
+    
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'toastSlideIn 0.3s ease-out reverse';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+function showDeleteModal(productId) {
+    deleteProductId = productId;
+    document.getElementById('deleteModal').classList.add('active');
+}
+
+function closeDeleteModal() {
+    deleteProductId = null;
+    document.getElementById('deleteModal').classList.remove('active');
+}
+
+function confirmDelete() {
+    if (deleteProductId) {
+        window.location.href = `deleteProduct.php?id=${deleteProductId}`;
+    }
+}
+
+// Check for success/error messages from URL parameters
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('deleted') === 'success') {
+    showToast('Success', 'Product deleted successfully', 'success');
+    // Clean URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+} else if (urlParams.get('deleted') === 'error') {
+    showToast('Error', 'Failed to delete product', 'error');
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
+</script>
+
+<!-- Add this HTML before closing </body> tag -->
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="modal-overlay" id="deleteModal">
+    
+</div>
+
+<!-- Add this JavaScript before closing </body> tag -->
+<script>
+let deleteProductId = null;
+
+function showToast(title, message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    const iconMap = {
+        success: 'fa-check-circle',
+        error: 'fa-times-circle',
+        warning: 'fa-exclamation-circle'
+    };
+    
+    toast.innerHTML = `
+        <i class="fas ${iconMap[type]} toast-icon"></i>
+        <div class="toast-content">
+            <div class="toast-title">${title}</div>
+            <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+    `;
+    
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideIn 0.3s ease-out reverse';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+function showDeleteModal(productId) {
+    deleteProductId = productId;
+    document.getElementById('deleteModal').classList.add('active');
+}
+
+function closeDeleteModal() {
+    deleteProductId = null;
+    document.getElementById('deleteModal').classList.remove('active');
+}
+
+function confirmDelete() {
+    if (deleteProductId) {
+        window.location.href = `deleteProduct.php?id=${deleteProductId}`;
+    }
+}
+
+// Check for success/error messages from URL parameters
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('deleted') === 'success') {
+    showToast('Success', 'Product deleted successfully', 'success');
+    // Clean URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+} else if (urlParams.get('deleted') === 'error') {
+    showToast('Error', 'Failed to delete product', 'error');
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
+</script>
 
         <!-- Messages Section -->
         <section class="content-section" id="messaging">

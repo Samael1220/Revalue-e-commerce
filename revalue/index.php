@@ -98,7 +98,7 @@
 
         <!-- Carousel Wrapper -->
         <div class="carousel">
-            <button class="carousel-btn prev">&#10094;</button>
+            
 
             <div class="carousel-track-container">
                 <div class="carousel-track">
@@ -138,7 +138,7 @@ $conn->close();
                 </div>
             </div>
 
-            <button class="carousel-btn next">&#10095;</button>
+           
         </div>
     </div>
 </section>
