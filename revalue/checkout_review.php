@@ -57,7 +57,45 @@ $grandTotal = array_reduce($selectedItems, function($carry, $item) {
 
 // Handle order confirmation
 if (isset($_POST['confirm_order'])) {
-    $shippingAddress = $_POST['shipping_address'] ?? '';
+    $shippingAddress   = $_POST['shipping_address'] ?? '';
+    $selectedPayment   = $_POST['payment_method'] ?? 'Cash on Delivery';
+    // Store as "Online Payment" when GCash is used
+    $paymentMethodDb   = ($selectedPayment === 'GCash') ? 'Online Payment' : $selectedPayment;
+
+    // Optional: handle uploaded GCash receipt (required on front-end)
+    // This will save the file inside the existing uploads/ folder.
+    $gcashReceiptPath = null;
+    if ($selectedPayment === 'GCash') {
+        if (!isset($_FILES['gcash_receipt']) || $_FILES['gcash_receipt']['error'] !== UPLOAD_ERR_OK) {
+            $_SESSION['order_error'] = "Please upload your GCash payment receipt.";
+            header("Location: checkout_review.php");
+            exit();
+        }
+
+        $uploadDir = 'uploads/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
+        $originalName = $_FILES['gcash_receipt']['name'];
+        $ext = pathinfo($originalName, PATHINFO_EXTENSION);
+        $safeExt = preg_replace('/[^a-zA-Z0-9]/', '', $ext);
+        if ($safeExt === '') {
+            $safeExt = 'jpg';
+        }
+
+        $newFileName = time() . '_gcash_' . bin2hex(random_bytes(4)) . '.' . $safeExt;
+        $targetPath = $uploadDir . $newFileName;
+
+        if (!move_uploaded_file($_FILES['gcash_receipt']['tmp_name'], $targetPath)) {
+            $_SESSION['order_error'] = "Failed to upload GCash receipt. Please try again.";
+            header("Location: checkout_review.php");
+            exit();
+        }
+
+        $gcashReceiptPath = $targetPath;
+    }
+
     $conn->begin_transaction();
 
     try {
@@ -79,18 +117,20 @@ if (isset($_POST['confirm_order'])) {
         $sizesJson  = json_encode($productSizes);
         $pricesJson = json_encode($productPrices);
 
-        // Insert into orders table
+        // Insert into orders table (including optional payment_proof for online payments)
         $stmtOrder = $conn->prepare("
             INSERT INTO orders 
-            (user_id, total_amount, payment_method, order_date, shipping_address, product_names, product_images, product_sizes, product_prices)
-            VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?)
+            (user_id, total_amount, payment_method, payment_proof, order_date, shipping_address, product_names, product_images, product_sizes, product_prices)
+            VALUES (?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?)
         ");
-        $paymentMethod = "Cash on Delivery";
+        $paymentMethod = $paymentMethodDb;
+        $paymentProof  = $gcashReceiptPath; // NULL for COD, path string for GCash
         $stmtOrder->bind_param(
-            "idssssss", // 8 variables
+            "idsssssss", // 9 variables
             $user_id,
             $grandTotal,
             $paymentMethod,
+            $paymentProof,
             $shippingAddress,
             $namesJson,
             $imagesJson,
@@ -222,7 +262,7 @@ if (isset($_POST['confirm_order'])) {
 
       <!-- Checkout Form -->
       <div class="checkout-form-container">
-        <form method="POST" class="checkout-form">
+        <form method="POST" id="checkout-form" class="checkout-form" enctype="multipart/form-data">
           <div class="form-section">
             <h4 class="section-title">Shipping Address</h4>
             <div class="select-wrapper">
@@ -249,6 +289,16 @@ if (isset($_POST['confirm_order'])) {
                   <div class="payment-info">
                     <span class="payment-name">Cash on Delivery</span>
                     <span class="payment-desc">Pay when you receive your order</span>
+                  </div>
+                </div>
+              </label>
+              <label class="payment-option">
+                <input type="radio" name="payment_method" value="GCash">
+                <div class="payment-content">
+                  <span class="payment-icon">📱</span>
+                  <div class="payment-info">
+                    <span class="payment-name">GCash (Online Payment)</span>
+                    <span class="payment-desc">Pay via GCash and upload your receipt</span>
                   </div>
                 </div>
               </label>
@@ -298,6 +348,32 @@ if (isset($_POST['confirm_order'])) {
     <div class="cr-confirm-actions">
       <button type="button" class="cr-confirm-btn cr-confirm-cancel">Cancel</button>
       <button type="button" class="cr-confirm-btn cr-confirm-confirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- GCash Payment Modal -->
+<div id="gcash-overlay" class="cr-confirm-overlay" aria-hidden="true" style="display:none;">
+  <div class="cr-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="gcash-title">
+    <div class="cr-confirm-header">
+      <h3 id="gcash-title" class="cr-confirm-title">GCash Payment</h3>
+      <button type="button" class="cr-confirm-close gcash-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="cr-confirm-body">
+      <p class="cr-confirm-message">Scan the QR code below to pay via GCash, then upload a screenshot or photo of your payment receipt.</p>
+      <div style="text-align:center; margin: 16px 0;">
+        <img src="uploads/gcash.jpg" alt="GCash QR Code" style="max-width:320px; width:100%; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.15);">
+      </div>
+      <div style="margin-top: 10px;">
+        <label for="gcash_receipt" style="display:block; font-weight:600; margin-bottom:6px;">Upload GCash Receipt <span style="color:#dc2626;">*</span></label>
+        <input type="file" id="gcash_receipt" name="gcash_receipt" accept="image/*" form="checkout-form"
+               style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #e5e7eb; font-size:0.9rem;">
+        <small id="gcash-error" style="color:#dc2626; display:none; margin-top:4px;">Receipt is required to continue.</small>
+      </div>
+    </div>
+    <div class="cr-confirm-actions">
+      <button type="button" class="cr-confirm-btn cr-confirm-cancel gcash-cancel">Cancel</button>
+      <button type="button" class="cr-confirm-btn cr-confirm-confirm gcash-confirm">Confirm Payment</button>
     </div>
   </div>
 </div>
@@ -352,11 +428,36 @@ if (isset($_POST['confirm_order'])) {
   (function() {
     const form = document.querySelector('.checkout-form');
     const overlay = document.getElementById('cr-confirm-overlay');
+    const gcashOverlay = document.getElementById('gcash-overlay');
     const btnConfirm = overlay ? overlay.querySelector('.cr-confirm-confirm') : null;
     const btnCancel = overlay ? overlay.querySelector('.cr-confirm-cancel') : null;
     const btnClose = overlay ? overlay.querySelector('.cr-confirm-close') : null;
 
+    const gcashConfirm = gcashOverlay ? gcashOverlay.querySelector('.gcash-confirm') : null;
+    const gcashCancel  = gcashOverlay ? gcashOverlay.querySelector('.gcash-cancel') : null;
+    const gcashClose   = gcashOverlay ? gcashOverlay.querySelector('.gcash-close') : null;
+    const gcashInput   = gcashOverlay ? gcashOverlay.querySelector('#gcash_receipt') : null;
+    const gcashError   = gcashOverlay ? gcashOverlay.querySelector('#gcash-error') : null;
+
     if (!form || !overlay) return;
+
+    // Toggle selected class for payment options
+    const paymentRadios = form.querySelectorAll('input[name="payment_method"]');
+    paymentRadios.forEach(radio => {
+      radio.addEventListener('change', () => {
+        document.querySelectorAll('.payment-option').forEach(label => {
+          label.classList.remove('selected');
+        });
+        if (radio.closest('.payment-option')) {
+          radio.closest('.payment-option').classList.add('selected');
+        }
+      });
+    });
+
+    function getSelectedPayment() {
+      const checked = form.querySelector('input[name="payment_method"]:checked');
+      return checked ? checked.value : 'Cash on Delivery';
+    }
 
     function openConfirm() {
       overlay.classList.add('show');
@@ -374,6 +475,19 @@ if (isset($_POST['confirm_order'])) {
       // If already confirmed once, allow submit
       if (form.dataset.confirmed === 'true') return;
       e.preventDefault();
+
+      const paymentMethod = getSelectedPayment();
+      if (paymentMethod === 'GCash' && gcashOverlay) {
+        // Show GCash modal first
+        gcashOverlay.classList.add('show');
+        gcashOverlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        if (gcashError) {
+          gcashError.style.display = 'none';
+        }
+        return;
+      }
+
       openConfirm();
     });
 
@@ -390,18 +504,55 @@ if (isset($_POST['confirm_order'])) {
       form.submit();
     });
 
+    // GCash confirm -> validate receipt then submit
+    gcashConfirm && gcashConfirm.addEventListener('click', function() {
+      if (!gcashInput || !gcashInput.files || gcashInput.files.length === 0) {
+        if (gcashError) {
+          gcashError.style.display = 'block';
+        }
+        return;
+      }
+
+      form.dataset.confirmed = 'true';
+      var hidden = document.createElement('input');
+      hidden.type = 'hidden';
+      hidden.name = 'confirm_order';
+      hidden.value = '1';
+      form.appendChild(hidden);
+
+      // Close GCash modal and submit
+      gcashOverlay.classList.remove('show');
+      gcashOverlay.style.display = 'none';
+      document.body.style.overflow = '';
+      form.submit();
+    });
+
     // Cancel/Close handlers
     btnCancel && btnCancel.addEventListener('click', closeConfirm);
     btnClose && btnClose.addEventListener('click', closeConfirm);
 
-    // Close when clicking outside dialog
+    // GCash cancel/close handlers
+    function closeGcash() {
+      if (!gcashOverlay) return;
+      gcashOverlay.classList.remove('show');
+      gcashOverlay.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+    gcashCancel && gcashCancel.addEventListener('click', closeGcash);
+    gcashClose && gcashClose.addEventListener('click', closeGcash);
+
+    // Close when clicking outside dialogs
     overlay.addEventListener('click', function(e) {
       if (e.target === overlay) closeConfirm();
+    });
+    gcashOverlay && gcashOverlay.addEventListener('click', function(e) {
+      if (e.target === gcashOverlay) closeGcash();
     });
 
     // Close on Escape
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape' && overlay.classList.contains('show')) closeConfirm();
+      if (e.key === 'Escape' && gcashOverlay && gcashOverlay.classList.contains('show')) closeGcash();
     });
   })();
 </script>

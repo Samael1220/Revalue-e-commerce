@@ -284,6 +284,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* Payment proof button styling */
+.payment-proof-link {
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid #4b8cfb;
+    background: rgba(59, 130, 246, 0.06);
+    color: #1d4ed8;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+.payment-proof-link::before {
+    content: "\f03e";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: 0.85rem;
+}
+
+.payment-proof-link:hover {
+    background: rgba(59, 130, 246, 0.14);
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.25);
+    transform: translateY(-1px);
+}
+
+.payment-proof-link:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.2);
+}
 </style>
         </section>
 
@@ -302,6 +336,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
                         <th>User Name</th>
                         <th>Address</th>
                         <th>Products</th>
+                        <th>Payment</th>
                         <th>Total Amount</th>
                         <th>Status</th>
                         <th>Order Date</th>
@@ -321,6 +356,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
                             o.order_date,
                             o.product_names,
                             o.product_images,
+                            o.payment_method,
+                            o.payment_proof,
                             u.Full_name AS user_name,
                             u.address AS user_address
                         FROM orders o
@@ -376,12 +413,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
                                 </button>";
                             }
 
+                            // Payment method cell (clickable for online payments with proof)
+                            $paymentMethod = $order['payment_method'] ?? 'Cash on Delivery';
+                            $paymentProof  = $order['payment_proof'] ?? null;
+                            $paymentCell   = htmlspecialchars($paymentMethod);
+
+                            if (strtolower($paymentMethod) === 'online payment' && !empty($paymentProof)) {
+                                $paymentCell = "<button type='button' class='payment-proof-link' data-proof='" . 
+                                               htmlspecialchars($paymentProof, ENT_QUOTES, 'UTF-8') . 
+                                               "' data-method='" . 
+                                               htmlspecialchars($paymentMethod, ENT_QUOTES, 'UTF-8') . 
+                                               "'>Online Payment</button>";
+                            }
+
                             echo "
                             <tr>
                                 <td><strong>#" . str_pad($order['order_id'], 5, '0', STR_PAD_LEFT) . "</strong></td>
                                 <td>" . htmlspecialchars($order['user_name']) . "</td>
                                 <td><span class='text-muted'>" . htmlspecialchars($order['user_address']) . "</span></td>
                                 <td>$productHTML</td>
+                                <td>$paymentCell</td>
                                 <td><strong>₱" . number_format($order['total_amount'], 2) . "</strong></td>
                                 <td>
                                     <span class='status-badge $statusClass' data-id='{$order['order_id']}'>
@@ -393,7 +444,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
                             </tr>";
                         }
                     } else {
-                        echo "<tr><td colspan='8' class='text-center'>No orders found.</td></tr>";
+                        echo "<tr><td colspan='9' class='text-center'>No orders found.</td></tr>";
                     }
                     ?>
                 </tbody>
@@ -405,6 +456,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
 <!-- Toast Elements -->
 <div class="toast-overlay" id="toastOverlay"></div>
 <div class="toast-container" id="toastContainer"></div>
+
+<!-- Payment Proof Modal -->
+<div id="payment-proof-modal" class="notification-preview-modal" aria-hidden="true">
+    <div class="notification-preview-dialog" role="dialog" aria-modal="true">
+        <button type="button" class="notification-preview-close" id="payment-proof-close" aria-label="Close proof preview">&times;</button>
+        <div class="notification-preview-header">
+            <h3 id="payment-proof-title">Proof of Payment</h3>
+            <p class="notification-preview-subtitle">Uploaded GCash receipt</p>
+        </div>
+        <div class="notification-preview-gallery" id="payment-proof-gallery">
+            <img id="payment-proof-image" src="" alt="Proof of payment" class="notif-image" />
+        </div>
+    </div>
+</div>
 
 <!-- JS for Toast System and Order Status Updates -->
 <script>
@@ -645,6 +710,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
             };
 
             badge.addEventListener("click", handleClick);
+        });
+
+        // Payment proof modal logic for Online Payment
+        const proofModal   = document.getElementById('payment-proof-modal');
+        const proofImage   = document.getElementById('payment-proof-image');
+        const proofClose   = document.getElementById('payment-proof-close');
+
+        function openProofModal(src) {
+            if (!proofModal || !proofImage) return;
+            proofImage.src = src;
+            proofModal.setAttribute('aria-hidden', 'false');
+            proofModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeProofModal() {
+            if (!proofModal || !proofImage) return;
+            proofModal.setAttribute('aria-hidden', 'true');
+            proofModal.style.display = 'none';
+            proofImage.src = '';
+            document.body.style.overflow = '';
+        }
+
+        if (proofClose) {
+            proofClose.addEventListener('click', closeProofModal);
+        }
+
+        if (proofModal) {
+            proofModal.addEventListener('click', function(e) {
+                if (e.target === proofModal) {
+                    closeProofModal();
+                }
+            });
+        }
+
+        document.querySelectorAll('.payment-proof-link').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const src = this.getAttribute('data-proof');
+                if (src) openProofModal(src);
+            });
         });
     });
 

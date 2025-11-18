@@ -439,6 +439,9 @@ $result = mysqli_query($conn, $query);
           <div class="order-header">
             <div class="order-info">
               <h3>Order #<?php echo htmlspecialchars($row['id']); ?></h3>
+              <div class="order-payment-method" style="font-size:0.85rem; color:#6b7280; margin-top:2px;">
+                Payment: <?php echo htmlspecialchars($row['payment_method']); ?>
+              </div>
               <span class="order-date"><?php echo htmlspecialchars($row['order_date']); ?></span>
             </div>
             <?php
